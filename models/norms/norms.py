@@ -2,8 +2,8 @@
 import torch
 import torch.nn as nn
 
-from models.norms.graphNorm import GraphNorm
-from models.norms.localBN1d import LocalBN1d
+from models.norms.graph_norm import GraphNorm
+from models.norms.local_bn1d import LocalBN1d
 
 class Norms(nn.Module):
 
