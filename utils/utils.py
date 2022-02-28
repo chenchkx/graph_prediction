@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from ogb.graphproppred.dataset_dgl import DglGraphPropPredDataset, collate_dgl
 
-from optims.optim_sync_ogb_hiv import ModelOptLearning_OGB_HIV
-from optims.optim_sync_ogb_hiv_statistics import ModelOptLearning_OGB_HIV_Statistics
+from optims.optim_sync_ogb_mol import ModelOptLearning_OGB_HIV
+from optims.optim_sync_ogb_mol_statistics import ModelOptLearning_OGB_HIV_Statistics
 from optims.optim_sync_ogb_ppa_statistics import ModelOptLearning_OGB_PPA_Statistics
 from models.GIN import GIN
 from models.GCN import GCN
