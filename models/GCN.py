@@ -6,6 +6,7 @@ import dgl.function as fn
 from dgl.nn.pytorch.glob import AvgPooling, SumPooling, MaxPooling
 from models.encoders.encoders import OGB_NodeEncoder, OGB_EdgeEncoder
 from models.norms.norms import Norms
+from models.pools.global_pools import Global_Pooling
 
 class GCNConvLayer_SparseAdj(nn.Module):
     def __init__(self, embed_dim, aggregator_type='mean', self_loops=True):
@@ -79,7 +80,7 @@ class GCNConvLayer(nn.Module):
 
 class GCN(nn.Module):
     def __init__(self, dataset_name, embed_dim, output_dim, num_layer, 
-                       norm_type='bn', aggregator_type='mean', pooling_type="mean", 
+                       norm_type='bn', aggregator_type='mean', pooling_type="dke", 
                        activation=F.relu, dropout=0.5):
         super(GCN, self).__init__()
         self.num_layer = num_layer
@@ -98,14 +99,7 @@ class GCN(nn.Module):
         self.predict = nn.Linear(embed_dim, output_dim)     
 
         # modules in GNN
-        if pooling_type == "sum":
-            self.pooling = SumPooling()
-        elif pooling_type == "mean":
-            self.pooling = AvgPooling()
-        elif pooling_type == "max":
-            self.pooling = MaxPooling()
-        else:
-            raise KeyError('Pooling type {} not recognized.'.format(pooling_type))
+        self.pooling = Global_Pooling(pooling_type)
 
         self.activation = activation
         self.dropout = nn.Dropout(dropout)

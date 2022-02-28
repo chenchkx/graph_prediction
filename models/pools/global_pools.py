@@ -1,15 +1,12 @@
-from ast import Global
-from turtle import forward
-
 
 import torch
 import torch.nn as nn
 from dgl.nn.pytorch.glob import AvgPooling, SumPooling, MaxPooling
+from models.pools.dkepool import DKEPooling
 
 class Global_Pooling(nn.Module):
-
-    def __init__(self, pooling_type) -> None:
-        super(Global_Pooling).__init__()
+    def __init__(self, pooling_type):
+        super(Global_Pooling, self).__init__()
 
         if pooling_type == "sum":
             self.pooling = SumPooling()
@@ -17,8 +14,9 @@ class Global_Pooling(nn.Module):
             self.pooling = AvgPooling()
         elif pooling_type == "max":
             self.pooling = MaxPooling()
+        elif pooling_type == "dke":
+            self.pooling = DKEPooling()
 
     def forward(self, graph, feat):
-
 
         return self.pooling(graph, feat)

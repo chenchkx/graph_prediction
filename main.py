@@ -36,7 +36,7 @@ if __name__ =='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--device", type=int, default=0)
     parser.add_argument("--datadir", type=str, default='/mnt/nfs/ckx/datasets/ogb/graph/')
-    parser.add_argument("--dataset", type=str, default='ogbg-molmuv')
+    parser.add_argument("--dataset", type=str, default='ogbg-molbbbp')
 
     parser.add_argument("--model", type=str, default='GCN', choices='GIN, GCN')
     parser.add_argument("--epochs", type=int, default=500)
@@ -44,7 +44,7 @@ if __name__ =='__main__':
     parser.add_argument("--num_layer", type=int, default=5)
     parser.add_argument("--embed_dim", type=int, default=128)
     parser.add_argument("--norm_type", type=str, default='None', choices=['None', 'bn', 'gn', 'mn'])
-    parser.add_argument("--batch_size", type=int, default=128)
+    parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--dropout", type=float, default=0.5)
     parser.add_argument("--weight_decay", type=float, default=1e-4)
