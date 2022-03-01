@@ -85,19 +85,15 @@ class DKEPooling(nn.Module):
         noise = noise - torch.mean(noise)
         signal_power = torch.norm(x - x.mean()) ** 2 / (x.shape[0]*x.shape[1])  # signal power
         noise_variance = signal_power /(10**(snr / 10))   # noise power
-        noise = (torch.sqrt(noise_variance) / torch.std(noise)) * noise
-        signal_noise = noise + x
-        return signal_noise
+        return x + (torch.sqrt(noise_variance) / torch.std(noise)) * noise
 
     def forward(self, graphs, feat):
-
         feat = self.snr_gaussnoise(feat.t()).t()
         batch_list = graphs.batch_num_nodes()     
         batch_indx = torch.arange(len(batch_list)).to(feat.device).repeat_interleave(batch_list) 
         batch_mean = segment.segment_reduce(batch_list, feat, reducer='mean')
         feat_mean = batch_mean[batch_indx]
-        ### Function repeat_interleave() is faster.
-        ### But it makes seed fail, the result is not reproducible
+        ### Function torch.repeat_interleave() is faster. But it makes seed fail, the result is not reproducible.
         # feat_mean = torch.repeat_interleave(batch_mean, batch_list, dim=0, output_size = feat.shape[0])
         feat_diff = feat - feat_mean
         batch_feat, _ = to_dense_batch(feat_diff, batch_indx)
