@@ -1,5 +1,6 @@
 logs_perf
 logs_stas
 logs
+
+__pycache__/
 *.pyc
-__pycache__
