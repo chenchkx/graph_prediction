@@ -8,6 +8,7 @@ class Global_Pooling(nn.Module):
     def __init__(self, pooling_type):
         super(Global_Pooling, self).__init__()
 
+        self.pooling_type = pooling_type
         if pooling_type == "sum":
             self.pooling = SumPooling()
         elif pooling_type == "mean":
@@ -19,4 +20,9 @@ class Global_Pooling(nn.Module):
 
     def forward(self, graph, feat):
 
-        return self.pooling(graph, feat)
+        if self.pooling_type == 'dke':
+            batch_list = graph.batch_num_nodes()
+            representation = self.pooling(batch_list, feat)
+        else:
+            representation = self.pooling(graph, feat)
+        return representation

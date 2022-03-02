@@ -80,6 +80,7 @@ class DKEPooling(nn.Module):
         super(DKEPooling, self).__init__()
         self.iterN = iterN
 
+
     def snr_gaussnoise(self, x, snr = 16):
         noise = torch.randn(x.shape[0], x.shape[1]).to(x.device)
         noise = noise - torch.mean(noise)
@@ -87,9 +88,10 @@ class DKEPooling(nn.Module):
         noise_variance = signal_power /(10**(snr / 10))   # noise power
         return x + (torch.sqrt(noise_variance) / torch.std(noise)) * noise
 
-    def forward(self, graphs, feat):
+
+    def forward(self, batch_list, feat):
+        
         feat = self.snr_gaussnoise(feat.t()).t()
-        batch_list = graphs.batch_num_nodes()     
         batch_indx = torch.arange(len(batch_list)).to(feat.device).repeat_interleave(batch_list) 
         batch_mean = segment.segment_reduce(batch_list, feat, reducer='mean')
         feat_mean = batch_mean[batch_indx]
