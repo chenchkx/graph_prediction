@@ -6,15 +6,9 @@ import torch.nn as nn
 from dgl.ops import segment
 
 class GraphNorm(nn.Module):
-    ### Graph norm implemented by dgl-0.7.0 toolkit
-    ### more details please refer to the paper:
-    # @inproceedings{cai2021graphnorm,
-    #   title={Graphnorm: A principled approach to accelerating graph neural network training},
-    #   author={Cai, Tianle and Luo, Shengjie and Xu, Keyulu and He, Di and Liu, Tie-yan and Wang, Liwei},
-    #   booktitle={International Conference on Machine Learning},
-    #   pages={1204--1215},
-    #   year={2021}
-    # }
+    ### Graph norm implemented by dgl toolkit
+    ### more details please refer to the paper: Graphnorm: A principled approach to accelerating graph neural network training
+
     def __init__(self, embed_dim=300):
         super(GraphNorm, self).__init__()
 
@@ -47,8 +41,7 @@ class GraphNorm(nn.Module):
         std = self.repeat(std, batch_list)
         return self.weight * sub / std + self.bias
 
-        ### Function repeat_interleave() is faster.
-        ### But it makes seed fail, the result is not reproducible
+        ### Function torch.repeat_interleave() is faster. But it makes seed fail, the result is not reproducible.
         # mean = segment.segment_reduce(batch_list, tensor, reducer='mean')
         # mean = torch.repeat_interleave(mean, batch_list, dim=0, output_size = tensor.shape[0])
         # sub = tensor - mean * self.mean_scale

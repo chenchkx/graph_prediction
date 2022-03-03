@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import dgl.function as fn
-from dgl.nn.pytorch.glob import AvgPooling, SumPooling, MaxPooling
 from models.encoders.encoders import OGB_NodeEncoder, OGB_EdgeEncoder
 from models.norms.norms import Norms
 from models.pools.global_pools import Global_Pooling
