@@ -182,8 +182,8 @@ class ModelOptLearning_OGB_HIV_Statistics:
         return stas_table.append(pd.DataFrame([table_data], columns=table_head), ignore_index=True)
         
     def optimizing(self):
-        # scheduler = LinearSchedule(self.optimizer, self.args.epochs)
-        scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=50, gamma=0.5)
+        scheduler = LinearSchedule(self.optimizer, self.args.epochs)
+        # scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=50, gamma=0.5)
         valid_best_cls = 0
         valid_best_reg = inf
         logs_table = pd.DataFrame()

@@ -79,7 +79,7 @@ class GCNConvLayer(nn.Module):
 
 class GCN(nn.Module):
     def __init__(self, dataset_name, embed_dim, output_dim, num_layer, 
-                       norm_type='bn', aggregator_type='mean', pooling_type="dke", 
+                       norm_type='bn', aggregator_type='mean', pooling_type="mean", 
                        activation=F.relu, dropout=0.5):
         super(GCN, self).__init__()
         self.num_layer = num_layer
