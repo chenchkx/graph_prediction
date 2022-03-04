@@ -13,6 +13,7 @@ def args_(args):
                      f"{args.num_layer}-"+
                      f"{args.embed_dim}-"+
                      f"{args.norm_type}-"+
+                     f"{args.pool_type}-"+
                      f"{args.batch_size}-"+
                      f"{args.lr}-"+
                      f"{args.dropout}-"+

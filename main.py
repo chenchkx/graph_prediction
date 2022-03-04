@@ -44,7 +44,7 @@ if __name__ =='__main__':
     parser.add_argument("--num_layer", type=int, default=5)
     parser.add_argument("--embed_dim", type=int, default=128)
     parser.add_argument("--norm_type", type=str, default='bn', choices=['bn', 'gn', 'None', 'mn'])
-    parser.add_argument("--pool_type", type=str, default="dke",  choices=['dke', 'sum', 'mean', 'max'])
+    parser.add_argument("--pool_type", type=str, default="dke", choices=['dke', 'sum', 'mean', 'max'])
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--dropout", type=float, default=0.5)
