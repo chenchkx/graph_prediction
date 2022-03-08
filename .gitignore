@@ -1,6 +1,6 @@
 
 logs*
-scripts
+scripts/
 
 __pycache__/
 *.pyc
