@@ -1,8 +1,12 @@
 
 logs*
-scripts*
+# scripts*
+# plot*
 
 __pycache__/
 *.pyc
+*.png
+*.jpg
+*.pdf
 
 .vscode
