@@ -12,7 +12,7 @@ dir_path = os.path.dirname(__file__)
 parser = argparse.ArgumentParser()
 parser.add_argument("--device", type=int, default=0)
 parser.add_argument("--datadir", type=str, default='/nfs4-p1/ckx/datasets/ogb/graph/')
-parser.add_argument("--dataset", type=str, default='ogbg-molbbbp')
+parser.add_argument("--dataset", type=str, default='ogbg-molhiv')
 
 parser.add_argument("--model", type=str, default='GCN', choices='GIN, GCN')
 parser.add_argument("--epochs", type=int, default=500)
@@ -43,8 +43,8 @@ if not os.path.exists(args.perf_imgs_dir):
     os.mkdir(args.perf_imgs_dir)
 
 
-curve_set = 'test'
-curve_metric = 'loss1' # loss or metric
+curve_set = 'valid'
+curve_metric = 'loss' # loss or metric
 if curve_metric != 'loss':
     curve_metric = get_metric(args)
 ### 'train-loss' 'train-rocauc'  'train-ap'

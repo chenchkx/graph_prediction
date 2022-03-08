@@ -16,7 +16,7 @@ for lr in 1e-3 5e-4;do
                --device $device \
                --dataset $dataset \
                --model $model \
-               --norm_type 'cn' \
+               --norm_type 'ln2' \
                --batch_size $bs \
                --lr $lr \
                --seed $seed \

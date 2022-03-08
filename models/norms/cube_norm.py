@@ -5,12 +5,12 @@ import torch.nn as nn
 
 from dgl.ops import segment
 
-class LP_Norm(nn.Module):
+class Cube_Norm(nn.Module):
     ### Graph norm implemented by dgl toolkit
     ### more details please refer to the paper: Graphnorm: A principled approach to accelerating graph neural network training
 
     def __init__(self, embed_dim=300):
-        super(LP_Norm, self).__init__()
+        super(Cube_Norm, self).__init__()
 
         self.bias = nn.Parameter(torch.zeros(embed_dim))
         self.weight = nn.Parameter(torch.ones(embed_dim))
@@ -33,12 +33,15 @@ class LP_Norm(nn.Module):
 
     def forward(self, graph, tensor):
         batch_list = graph.batch_num_nodes()    
-        tensor_abs = torch.abs(tensor)
-        tensor_max = segment.segment_reduce(batch_list, tensor_abs, reducer='max')
-        tensor_max = self.repeat(tensor_max, batch_list)
-        tensor_max[tensor_max<=1e-12] = 1e-12
+        tensor_max = segment.segment_reduce(batch_list, tensor, reducer='max')
+        tensor_min = segment.segment_reduce(batch_list, tensor, reducer='min')
+        tensor_mid = (tensor_max + tensor_min)/2
+        tensor_ldv = (tensor_max - tensor_min)/2
+        tensor_mid = self.repeat(tensor_mid, batch_list)
+        tensor_ldv = self.repeat(tensor_ldv, batch_list)
+        tensor_ldv[tensor_ldv<=1e-12] = 1e-12
 
-        return tensor/tensor_max
+        return (tensor-tensor_mid)/tensor_ldv
 
         ### Function torch.repeat_interleave() is faster. But it makes seed fail, the result is not reproducible.
         # mean = segment.segment_reduce(batch_list, tensor, reducer='mean')

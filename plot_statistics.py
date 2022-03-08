@@ -12,7 +12,7 @@ dir_path = os.path.dirname(__file__)
 parser = argparse.ArgumentParser()
 parser.add_argument("--device", type=int, default=0)
 parser.add_argument("--datadir", type=str, default='/nfs4-p1/ckx/datasets/ogb/graph/')
-parser.add_argument("--dataset", type=str, default='ogbg-moltox21')
+parser.add_argument("--dataset", type=str, default='ogbg-molhiv')
 
 parser.add_argument("--model", type=str, default='GCN', choices='GIN, GCN')
 parser.add_argument("--epochs", type=int, default=500)
@@ -20,11 +20,11 @@ parser.add_argument("--epoch_slice", type=int, default=0)
 parser.add_argument("--num_layer", type=int, default=5)
 parser.add_argument("--embed_dim", type=int, default=128)
 parser.add_argument("--norm_type", type=str, default='gn', choices=['None', 'bn', 'gn', 'mn'])
-parser.add_argument("--pool_type", type=str, default="dke", choices=['dke', 'sum', 'mean', 'max'])
+parser.add_argument("--pool_type", type=str, default="mean", choices=['dke', 'sum', 'mean', 'max'])
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--dropout", type=float, default=0.5)
-parser.add_argument("--weight_decay", type=float, default=1e-3)
+parser.add_argument("--weight_decay", type=float, default=0.0)
 parser.add_argument("--loss_type", type=str, default='ogb', choices='ogb, bce, mce', 
                     help='ogb: the loss keep sync with that used in ogb paper')
 parser.add_argument("--seed", type=int, default=0)
@@ -44,9 +44,9 @@ if not os.path.exists(args.stas_imgs_dir):
 
 
 
-dataset_component = 'train'
+dataset_component = 'test'
 ### choose the norm type
-args.norm_type = 'mn'
+args.norm_type = 'ln'
 args = args_(args)
 xlsx_path = os.path.join(args.stas_xlsx_dir, args.identity + f"-{dataset_component}.xlsx")
 logs_table = pd.read_excel(xlsx_path)

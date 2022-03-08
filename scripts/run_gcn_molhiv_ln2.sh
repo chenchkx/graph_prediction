@@ -3,20 +3,20 @@
 set -e
 
 
-device=1
-dataset='ogbg-molbbbp'
+device=0
+dataset='ogbg-molhiv'
 model='GCN'
 bs=128
 
 for lr in 1e-3 5e-4;do
     for seed in 0;do
-       for wd in 0 5e-4 1e-4;do
+       for wd in 0 5e-4;do
 
         python main.py \
                --device $device \
                --dataset $dataset \
                --model $model \
-               --norm_type 'cn' \
+               --norm_type 'ln2' \
                --batch_size $bs \
                --lr $lr \
                --seed $seed \
@@ -41,7 +41,7 @@ for lr in 1e-3 5e-4;do
        #         --lr $lr \
        #         --seed $seed \
        #         --weight_decay $wd
-
+               
        #  python main.py \
        #         --device $device \
        #         --dataset $dataset \
@@ -51,6 +51,7 @@ for lr in 1e-3 5e-4;do
        #         --lr $lr \
        #         --seed $seed \
        #         --weight_decay $wd
+
 
        #  python main.py \
        #         --device $device \
@@ -74,7 +75,6 @@ for lr in 1e-3 5e-4;do
        #         --seed $seed \
        #         --weight_decay $wd
 
-
        #  python main.py \
        #         --device $device \
        #         --dataset $dataset \
@@ -90,5 +90,4 @@ for lr in 1e-3 5e-4;do
        done
     done
 done
-
 
