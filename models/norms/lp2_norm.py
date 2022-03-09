@@ -36,7 +36,7 @@ class LP2_Norm(nn.Module):
         tensor_abs = torch.abs(tensor)
         tensor_max = segment.segment_reduce(batch_list, tensor_abs, reducer='max')
         tensor_max = self.repeat(tensor_max, batch_list)
-        tensor_max[tensor_max<=0.5] = 0.5
+        tensor_max[tensor_max<=0.5] = 1
 
         return tensor/tensor_max
 

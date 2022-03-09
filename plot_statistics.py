@@ -44,9 +44,9 @@ if not os.path.exists(args.stas_imgs_dir):
 
 
 
-dataset_component = 'test'
+dataset_component = 'valid'
 ### choose the norm type
-args.norm_type = 'ln'
+args.norm_type = 'ln2'
 args = args_(args)
 xlsx_path = os.path.join(args.stas_xlsx_dir, args.identity + f"-{dataset_component}.xlsx")
 logs_table = pd.read_excel(xlsx_path)
