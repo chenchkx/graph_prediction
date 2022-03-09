@@ -35,10 +35,12 @@ class LP2_Norm(nn.Module):
         batch_list = graph.batch_num_nodes()    
         tensor_abs = torch.abs(tensor)
         tensor_max = segment.segment_reduce(batch_list, tensor_abs, reducer='max')
-        tensor_max = self.repeat(tensor_max, batch_list)
-        tensor_max[tensor_max<=0.5] = 1
+        tensor_mean = segment.segment_reduce(batch_list, tensor, reducer='mean')
+        tensor_mean[tensor_mean<1] = torch.sigmoid(tensor_max[tensor_mean<1])
+        tensor_mean = torch.abs(tensor_mean)
+        tensor_scale = self.repeat(tensor_mean, batch_list)
 
-        return tensor/tensor_max
+        return tensor/tensor_scale
 
         ### Function torch.repeat_interleave() is faster. But it makes seed fail, the result is not reproducible.
         # mean = segment.segment_reduce(batch_list, tensor, reducer='mean')
