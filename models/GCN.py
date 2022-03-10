@@ -99,7 +99,12 @@ class GCN(nn.Module):
             # self.conv_layers.append(GCNConvLayer_SparseAdj(embed_dim))
             self.norm_layers.append(Norms(norm_type, embed_dim))
         # output layer
-        self.predict = nn.Linear(embed_dim, output_dim)     
+        self.predict = nn.Sequential(
+            nn.Linear(embed_dim, embed_dim//2),
+            nn.ReLU(),
+            nn.Dropout(p=dropout),
+            nn.Linear(embed_dim//2, output_dim)
+        )   
 
         # modules in GNN
         self.pooling = Global_Pooling(pooling_type)
@@ -112,7 +117,7 @@ class GCN(nn.Module):
         h_n = self.atom_encoder(nfeat)
         self.conv_feature = []
         self.norm_feature = []
-        for layer in range(self.num_layer-1):
+        for layer in range(self.num_layer):
             x = h_n
             # conv_layer
             h_n = self.conv_layers[layer](graphs, h_n, efeat)
@@ -120,9 +125,7 @@ class GCN(nn.Module):
             h_n = self.norm_layers[layer](graphs, h_n)
             self.norm_feature.append(h_n)
             # activation & residual 
-            if layer != self.num_layer - 1:
-                h_n = self.activation(h_n)
-            h_n = self.dropout(h_n)
+            h_n = self.dropout(self.activation(h_n))
             h_n = h_n + x                   
         # pooling & prediction
         g_n = self.pooling(graphs, h_n)

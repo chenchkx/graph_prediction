@@ -90,6 +90,7 @@ def args_(args, dataset):
                      f"{args.norm_type}-"+
                      f"{args.pool_type}-"+
                      f"{args.batch_size}-"+
+                     f"{args.lr_warmup_type}-"+
                      f"{args.lr}-"+
                      f"{args.dropout}-"+
                      f"{args.weight_decay}-"+
