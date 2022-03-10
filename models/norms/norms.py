@@ -4,6 +4,7 @@ import torch.nn as nn
 
 from models.norms.graph_norm import GraphNorm
 from models.norms.local_bn1d import LocalBN1d
+from models.norms.instance_norm import InstanceNorm
 from models.norms.lp_norm import LP_Norm
 from models.norms.lp2_norm import LP2_Norm
 from models.norms.cube_norm import Cube_Norm
@@ -12,17 +13,15 @@ class Norms(nn.Module):
 
     def __init__(self, norm_type = 'bn', embed_dim=300, print_info=None):
         super(Norms, self).__init__()
-        assert norm_type in ['bn', 'gn', 'mn', 'ln', 'ln2', 'cn', 'None']
+        assert norm_type in ['bn', 'gn', 'in', 'ln', 'ln2', 'cn', 'None']
         self.norm_type = norm_type
         self.norm = None
         if norm_type == 'bn':
             self.norm = LocalBN1d(embed_dim)
         elif norm_type == 'gn':
             self.norm = GraphNorm(embed_dim)
-        elif norm_type == 'mn':
-            self.norm = nn.ModuleList()
-            self.norm.append(GraphNorm(embed_dim))
-            self.norm.append(LocalBN1d(embed_dim))
+        elif norm_type == 'in':
+            self.norm = InstanceNorm(embed_dim)
         elif norm_type == 'ln':
             self.norm = nn.ModuleList()
             self.norm.append(LP_Norm(embed_dim))

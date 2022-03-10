@@ -3,7 +3,7 @@
 set -e
 
 
-device=2
+device=0
 dataset='ogbg-molhiv'
 model='GCN'
 bs=128
@@ -26,7 +26,7 @@ for lr in 1e-3 5e-4;do
                --device $device \
                --dataset $dataset \
                --model $model \
-               --norm_type 'ln' \
+               --norm_type 'gn' \
                --batch_size $bs \
                --lr $lr \
                --seed $seed \
@@ -36,12 +36,11 @@ for lr in 1e-3 5e-4;do
                --device $device \
                --dataset $dataset \
                --model $model \
-               --norm_type 'ln2' \
+               --norm_type 'in' \
                --batch_size $bs \
                --lr $lr \
                --seed $seed \
                --weight_decay $wd
-
 
 
        #  python main.py \

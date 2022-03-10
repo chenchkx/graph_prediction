@@ -35,9 +35,10 @@ class LP_Norm(nn.Module):
         batch_list = graph.batch_num_nodes()    
         tensor_abs = torch.abs(tensor)
         tensor_max = segment.segment_reduce(batch_list, tensor_abs, reducer='max')
-        tensor_max = self.repeat(tensor_max, batch_list)
         tensor_max[tensor_max<=1e-12] = 1e-12
-
+        tensor_max = tensor_max.max(1)[0].unsqueeze(1).repeat(1,tensor_max.shape[1])
+        tensor_max = self.repeat(tensor_max.sqrt(), batch_list)
+        
         return tensor/tensor_max
 
         ### Function torch.repeat_interleave() is faster. But it makes seed fail, the result is not reproducible.
