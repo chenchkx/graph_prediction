@@ -46,40 +46,45 @@ class GCNConvLayer_SparseAdj(nn.Module):
 
 
 class GCNConvLayer(nn.Module):
-    def __init__(self, embed_dim, aggregator_type='mean'):
+    def __init__(self, dataset_name, embed_dim):
         super(GCNConvLayer, self).__init__()
 
-        self.update_feat = nn.Linear(embed_dim, embed_dim)
+        self.project_node_feat = nn.Linear(embed_dim, embed_dim)
+        self.project_edge_feat = OGB_EdgeEncoder(dataset_name, embed_dim)
+        self.project_residual =  nn.Embedding(1, embed_dim)
 
-        if aggregator_type == 'sum':
-            self.reduce = fn.sum
-        elif aggregator_type == 'mean':
-            self.reduce = fn.mean
-        elif aggregator_type == 'max':
-            self.reduce = fn.max
-        else:
-            raise KeyError('Aggregator type {} not recognized.'.format(aggregator_type))
+
+    def get_degs_norm(self, graphs):
+        degs = (graphs.in_degrees().float() + 1).to(graphs.device)
+        norm = torch.pow(degs, -0.5).unsqueeze(-1) 
+        graphs.ndata['norm'] = norm
+        graphs.apply_edges(fn.u_mul_v('norm', 'norm', 'norm'))
+        norm = graphs.edata.pop('norm')
+
+        return degs, norm
 
     def forward(self, graphs, nfeat, efeat):
         graphs = graphs.local_var()
-        # aggragation
-        # graphs.ndata['h_n'] = nfeat
-        # graphs.edata['h_e'] = efeat
-        # graphs.update_all(fn.u_add_e('h_n', 'h_e', 'm'),
-        #                   self.reduce('m', 'neigh'))
-        # rst = self.update_feat(graphs.ndata['neigh'] +  nfeat)
+        degs, norm =self.get_degs_norm(graphs)
+        nfeat = self.project_node_feat(nfeat)
+        efeat = self.project_edge_feat(efeat)
+
         graphs.ndata['feat'] = nfeat
         graphs.apply_edges(fn.copy_u('feat', 'e'))
-        graphs.edata['e'] = F.relu(efeat + graphs.edata['e'])
-        graphs.update_all(fn.copy_e('e','m'), self.reduce('m', 'feat'))
+        graphs.edata['e'] = norm * F.relu(graphs.edata['e'] + efeat)
+        graphs.update_all(fn.copy_e('e', 'm'), fn.sum('m', 'feat'))
 
-        rst = self.update_feat(graphs.ndata['feat'] +  nfeat)
+        residual_nfeat = nfeat + self.project_residual.weight
+        residual_nfeat = F.relu(residual_nfeat)
+        residual_nfeat = residual_nfeat * 1. / degs.view(-1, 1)
+
+        rst = graphs.ndata['feat'] + residual_nfeat
         return rst
 
 
 class GCN(nn.Module):
     def __init__(self, dataset_name, embed_dim, output_dim, num_layer, 
-                       norm_type='bn', aggregator_type='mean', pooling_type="mean", 
+                       norm_type='bn', pooling_type="mean", 
                        activation=F.relu, dropout=0.5):
         super(GCN, self).__init__()
         self.num_layer = num_layer
@@ -89,9 +94,8 @@ class GCN(nn.Module):
         self.bond_layers = nn.ModuleList()
         self.conv_layers = nn.ModuleList()
         self.norm_layers = nn.ModuleList() 
-        for i in range(num_layer-1):
-            self.bond_layers.append(OGB_EdgeEncoder(dataset_name, embed_dim))
-            self.conv_layers.append(GCNConvLayer(embed_dim))
+        for i in range(num_layer):
+            self.conv_layers.append(GCNConvLayer(dataset_name, embed_dim))
             # self.conv_layers.append(GCNConvLayer_SparseAdj(embed_dim))
             self.norm_layers.append(Norms(norm_type, embed_dim))
         # output layer
@@ -106,21 +110,17 @@ class GCN(nn.Module):
     def forward(self, graphs, nfeat, efeat):
         # initializing node features h_n
         h_n = self.atom_encoder(nfeat)
-        
         self.conv_feature = []
         self.norm_feature = []
-
         for layer in range(self.num_layer-1):
             x = h_n
-            # initializing edge features h_e & graph convolution for node features 
-            # norm in batch graphs
-            h_e = self.bond_layers[layer](efeat)
-            h_n = self.conv_layers[layer](graphs, h_n, h_e)
+            # conv_layer
+            h_n = self.conv_layers[layer](graphs, h_n, efeat)
             self.conv_feature.append(h_n)
             h_n = self.norm_layers[layer](graphs, h_n)
             self.norm_feature.append(h_n)
             # activation & residual 
-            if layer != self.num_layer - 2:
+            if layer != self.num_layer - 1:
                 h_n = self.activation(h_n)
             h_n = self.dropout(h_n)
             h_n = h_n + x                   

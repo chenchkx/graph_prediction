@@ -5,6 +5,7 @@ import torch
 import torch.optim as optim
 
 from dgllife.model import GNNOGBPredictor
+# from dgllife.model.model_zoo.gnn_ogb_predictor import GNNOGBPredictor
 from ogb.graphproppred import DglGraphPropPredDataset, Evaluator, collate_dgl
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -86,7 +87,7 @@ def main():
         device = torch.device('cpu')
 
     # data loading and splitting
-    dataset = DglGraphPropPredDataset(name=args.dataset, root='/nfs4-p1/ckx/datasets/ogb/graph/')
+    dataset = DglGraphPropPredDataset(name=args.dataset, root='/mnt/nfs/ckx/datasets/ogb/graph/')
     # initialize node features
     for i in range(len(dataset)):
         dataset[i][0].ndata['h'] = torch.zeros(dataset[i][0].num_nodes()).long()

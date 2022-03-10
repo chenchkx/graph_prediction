@@ -12,7 +12,7 @@ dir_path = os.path.dirname(__file__)
 parser = argparse.ArgumentParser()
 parser.add_argument("--device", type=int, default=0)
 parser.add_argument("--datadir", type=str, default='/nfs4-p1/ckx/datasets/ogb/graph/')
-parser.add_argument("--dataset", type=str, default='ogbg-molbbbp')
+parser.add_argument("--dataset", type=str, default='ogbg-molhiv')
 
 parser.add_argument("--model", type=str, default='GCN', choices='GIN, GCN')
 parser.add_argument("--epochs", type=int, default=500)

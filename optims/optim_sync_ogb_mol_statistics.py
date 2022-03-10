@@ -11,6 +11,7 @@ from cmath import inf
 from sklearn import metrics 
 from ogb.graphproppred import Evaluator
 from torch.optim.lr_scheduler import LambdaLR
+from transformers.optimization import get_cosine_schedule_with_warmup, get_linear_schedule_with_warmup
 
 cls_criterion = nn.BCEWithLogitsLoss()
 reg_criterion = nn.MSELoss()
@@ -182,8 +183,13 @@ class ModelOptLearning_OGB_HIV_Statistics:
         return stas_table.append(pd.DataFrame([table_data], columns=table_head), ignore_index=True)
         
     def optimizing(self):
-        # scheduler = LinearSchedule(self.optimizer, self.args.epochs)
-        scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=50, gamma=0.5)
+        if 'cosine' in self.args.lr_warmup:
+            scheduler = get_cosine_schedule_with_warmup(self.optimizer, 50, self.args.epochs)
+        elif 'linear' in self.args.lr_warmup:
+            scheduler = get_linear_schedule_with_warmup(self.optimizer, 50, self.args.epochs)
+        else:
+            scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=50, gamma=0.5)  
+                 
         valid_best_cls = 0
         valid_best_reg = inf
         logs_table = pd.DataFrame()
