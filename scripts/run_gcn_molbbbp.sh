@@ -6,6 +6,7 @@ set -e
 device=0
 dataset='ogbg-molbbbp'
 model='GCN'
+nlayer=4
 bs=128
 
 for lr in 1e-3 5e-4;do
@@ -16,6 +17,7 @@ for lr in 1e-3 5e-4;do
                --device $device \
                --dataset $dataset \
                --model $model \
+               --num_layer $nlayer \
                --norm_type 'bn' \
                --batch_size $bs \
                --lr $lr \
@@ -26,6 +28,7 @@ for lr in 1e-3 5e-4;do
                --device $device \
                --dataset $dataset \
                --model $model \
+               --num_layer $nlayer \
                --norm_type 'gn' \
                --batch_size $bs \
                --lr $lr \
@@ -36,6 +39,7 @@ for lr in 1e-3 5e-4;do
                --device $device \
                --dataset $dataset \
                --model $model \
+               --num_layer $nlayer \
                --norm_type 'in' \
                --batch_size $bs \
                --lr $lr \
@@ -46,6 +50,7 @@ for lr in 1e-3 5e-4;do
                --device $device \
                --dataset $dataset \
                --model $model \
+               --num_layer $nlayer \
                --norm_type 'ln' \
                --batch_size $bs \
                --lr $lr \
@@ -56,6 +61,18 @@ for lr in 1e-3 5e-4;do
                --device $device \
                --dataset $dataset \
                --model $model \
+               --num_layer $nlayer \
+               --norm_type 'ln2' \
+               --batch_size $bs \
+               --lr $lr \
+               --seed $seed \
+               --weight_decay $wd
+
+        python main.py \
+               --device $device \
+               --dataset $dataset \
+               --model $model \
+               --num_layer $nlayer \
                --norm_type 'None' \
                --batch_size $bs \
                --lr $lr \

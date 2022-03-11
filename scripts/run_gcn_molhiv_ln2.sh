@@ -3,12 +3,12 @@
 set -e
 
 
-device=0
+device=1
 dataset='ogbg-molhiv'
 model='GCN'
 bs=128
 
-for lr in 5e-4;do
+for lr in 1e-3;do
     for seed in 0;do
        for wd in 0 5e-4;do
 
@@ -17,58 +17,6 @@ for lr in 5e-4;do
                --dataset $dataset \
                --model $model \
                --norm_type 'ln2' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
-
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --norm_type 'ln' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
-
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --norm_type 'None' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
-
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --norm_type 'gn' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
-               
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --norm_type 'mn' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
-
-
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --norm_type 'bn' \
-               --pool_type 'mean' \
                --batch_size $bs \
                --lr $lr \
                --seed $seed \

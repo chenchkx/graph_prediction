@@ -35,12 +35,10 @@ class LP2_Norm(nn.Module):
         batch_list = graph.batch_num_nodes()    
         tensor_abs = torch.abs(tensor)
         tensor_max = segment.segment_reduce(batch_list, tensor_abs, reducer='max')
-        tensor_mean = segment.segment_reduce(batch_list, tensor, reducer='mean')
-        tensor_mean[tensor_mean<1] = torch.sigmoid(tensor_max[tensor_mean<1])
-        tensor_mean = torch.abs(tensor_mean)
-        tensor_scale = self.repeat(tensor_mean, batch_list)
+        tensor_max[tensor_max<=1e-12] = 1e-12
+        tensor_max = self.repeat(tensor_max, batch_list)
 
-        return tensor/tensor_scale
+        return tensor/tensor_max
 
         ### Function torch.repeat_interleave() is faster. But it makes seed fail, the result is not reproducible.
         # mean = segment.segment_reduce(batch_list, tensor, reducer='mean')
@@ -49,31 +47,6 @@ class LP2_Norm(nn.Module):
         # std = segment.segment_reduce(batch_list, sub.pow(2), reducer='mean')
         # std = (std + 1e-6).sqrt()
         # std = torch.repeat_interleave(std, batch_list, dim=0, output_size = tensor.shape[0])
-        # return self.weight * sub / std + self.bias
-
-        ### Implemented with sparse matrices
-        # mean = segment.segment_reduce(batch_list, tensor, reducer='mean')
-        # mean = self.repeat_with_blockDiagMatrix(mean, batch_list)
-        # sub = tensor - mean * self.mean_scale
-        # std = segment.segment_reduce(batch_list, sub.pow(2), reducer='mean')
-        # std = (std + 1e-6).sqrt()
-        # std = self.repeat_with_blockDiagMatrix(std, batch_list)
-        # return self.weight * sub / std + self.bias
-
-        ### Source code avaliable at https://github.com/lsj2408/GraphNorm
-        # batch_size = len(batch_list)
-        # batch_index = torch.arange(batch_size).to(tensor.device).repeat_interleave(batch_list)
-        # batch_index = batch_index.view((-1,) + (1,) * (tensor.dim() - 1)).expand_as(tensor)
-        # mean = torch.zeros(batch_size, *tensor.shape[1:]).to(tensor.device)
-        # mean = mean.scatter_add_(0, batch_index, tensor)
-        # mean = (mean.T / batch_list).T
-        # mean = mean.repeat_interleave(batch_list, dim=0)
-        # # sub = tensor - mean
-        # sub = tensor - mean * self.mean_scale     
-        # std = torch.zeros(batch_size, *tensor.shape[1:]).to(tensor.device)
-        # std = std.scatter_add_(0, batch_index, sub.pow(2))
-        # std = ((std.T / batch_list).T + 1e-6).sqrt()
-        # std = std.repeat_interleave(batch_list, dim=0)
         # return self.weight * sub / std + self.bias
 
         

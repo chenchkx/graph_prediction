@@ -3,7 +3,7 @@
 set -e
 
 
-device=1
+device=3
 dataset='ogbg-molbbbp'
 model='GCN'
 bs=128
