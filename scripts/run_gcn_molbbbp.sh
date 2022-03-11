@@ -46,38 +46,6 @@ for lr in 1e-3 5e-4;do
                --seed $seed \
                --weight_decay $wd
 
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --num_layer $nlayer \
-               --norm_type 'ln' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
-
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --num_layer $nlayer \
-               --norm_type 'ln2' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
-
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --num_layer $nlayer \
-               --norm_type 'None' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
 
         # python main.py \
         #        --device $device \
