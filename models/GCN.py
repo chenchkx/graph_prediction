@@ -127,7 +127,7 @@ class GCN(nn.Module):
             # activation & residual 
             if layer != self.num_layer - 1:
                 h_n = self.dropout(self.activation(h_n))
-            h_n = h_n + x                   
+            # h_n = h_n + x                   
         # pooling & prediction
         g_n = self.pooling(graphs, h_n)
         pre = self.predict(g_n)

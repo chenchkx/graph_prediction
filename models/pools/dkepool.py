@@ -1,10 +1,12 @@
 
+
 import torch
 import torch.nn.functional as F
 from torch import nn
 from torch.autograd import Function
 from dgl.ops import segment
-from torch_geometric.utils import to_dense_batch
+from utils.utils_practice import batch_tensor_trace, to_batch_tensor, batch_tensor_var_mask
+
 
 
 # Fast Matrix Power Normalized SPD Matrix Function
@@ -77,46 +79,41 @@ class FastMPNSPDMatrixFunction(Function):
 
 
 class DKEPooling(nn.Module):
-    def __init__(self, iterN = 5, snr_value = 15, min_power=1e-10):
+    def __init__(self, iterN=5, snr_value=15, min_trace=1e-12, min_power=1e-12):
         super(DKEPooling, self).__init__()
+        ### parameters for batch_gaussperturbation
+        self.register_buffer('snr_value', torch.tensor(snr_value))
+        self.register_buffer('iterN', torch.tensor(iterN))
 
+        ### parameters for batch_gaussperturbation & batch_gaussperturbation_snr
         self.noise_weight = nn.Parameter(torch.Tensor(1))
         self.noise_bias = nn.Parameter(torch.Tensor(1))
         self.noise_weight.data.fill_(1)
         self.noise_bias.data.fill_(0)
-
-        self.register_buffer('snr_value', torch.tensor(snr_value))
+        self.perturbation = nn.Parameter(torch.Tensor(1))
+        self.perturbation.data.fill_(0)
+        self.register_buffer('min_trace', torch.tensor(min_trace))
         self.register_buffer('min_power', torch.tensor(min_power))
-        self.register_buffer('iterN', torch.tensor(iterN))
 
-    def to_batch_tensors(self, tensor, batch_list, batch_indx):
-        tensor_means = torch.mean(segment.segment_reduce(batch_list, tensor, reducer='mean'), 1)
-        batch_tensor, batch_mask = to_dense_batch(tensor, batch_indx)
-        batch_tensor = batch_tensor-tensor_means.reshape(tensor_means.shape[0],1,1)
-        tensor_ = batch_tensor[batch_mask]
-        batch_tensor_, _ = to_dense_batch(tensor_, batch_indx)
-        batch_tensor_var = torch.sum(batch_tensor_*batch_tensor_, dim=(1,2))/(batch_list*tensor.shape[1])
-        return batch_tensor_var, batch_tensor_,  batch_mask
-
-    def gauss_perturbation(self, tensor, batch_list, batch_indx, snr = 15):
+    def batch_gaussperturbation(self, tensor, batch_list, batch_indx, snr = 15):
         noise = torch.randn(tensor.shape[0], tensor.shape[1]).to(tensor.device)
-        batch_noise_var, batch_noise_, batch_mask = self.to_batch_tensors(noise, batch_list, batch_indx)
-        batch_tensor_var, _, _ = self.to_batch_tensors(tensor, batch_list, batch_indx) 
+        batch_noise, batch_noise_var, batch_mask = batch_tensor_var_mask(noise, batch_list, batch_indx)
+        batch_tensor_var = batch_tensor_var_mask(tensor, batch_list, batch_indx)[1] 
         batch_var_snr = batch_tensor_var /(10**(snr / 10))
-        noise_snr = batch_noise_*(torch.sqrt(batch_var_snr) / torch.sqrt(batch_noise_var)).reshape(batch_noise_.shape[0],1,1)
+        noise_snr = batch_noise*(torch.sqrt(batch_var_snr) / torch.sqrt(batch_noise_var)).reshape(batch_noise.shape[0],1,1)
         noise_snr = noise_snr[batch_mask]
-        return tensor + noise_snr
+        return noise_snr
 
-    def batch_gaussperturbation(self, tensor, snr = 15):
-        noise = torch.randn(tensor.shape[0], tensor.shape[1]).to(tensor.device)
-        noise = noise - torch.mean(noise)
-        signal_power = torch.norm(tensor - tensor.mean()) ** 2 / (tensor.shape[0]*tensor.shape[1])  # signal power
-        noise_variance = signal_power /(10**(snr / 10))   # noise power
-        noise = (torch.sqrt(noise_variance) / torch.std(noise)) * noise
-        signal_noise = noise + tensor
-        return signal_noise
+    def batch_cov_perturbation(self, batch_cov):
+        assert batch_cov.shape[1] == batch_cov.shape[2]
+        if self.perturbation < 1e-5:
+            self.perturbation.data.fill_(1e-5)
+        batch_trace = batch_tensor_trace(batch_cov)
+        batch_trace[batch_trace<self.min_trace] = self.min_trace 
+        batch_noise = torch.eye(batch_cov.shape[1]).repeat(batch_cov.shape[0],1,1).to(batch_cov.device)
+        return self.perturbation*batch_trace*batch_noise
 
-    def batch_perturbation(self, batch_cov, snr_value):
+    def batch_cov_perturbation_snr(self, batch_cov, snr_value):
         assert batch_cov.shape[1] == batch_cov.shape[2]
         noise = torch.randn(batch_cov.size()).to(batch_cov.device)
         batch_noise = noise.bmm(noise.transpose(1,2))/batch_cov.shape[1]
@@ -129,18 +126,16 @@ class DKEPooling(nn.Module):
         return batch_noise*noise_power.reshape(batch_cov.shape[0],1,1)
 
     def forward(self, batch_list, feat):
-        
-        batch_indx = torch.arange(len(batch_list)).to(feat.device).repeat_interleave(batch_list) 
-        feat = self.gauss_perturbation(feat, batch_list, batch_indx, snr = 15)
+        batch_index = torch.arange(len(batch_list)).to(feat.device).repeat_interleave(batch_list) 
+        feat = feat + self.batch_gaussperturbation(feat, batch_list, batch_index, snr=self.snr_value)
         batch_mean = segment.segment_reduce(batch_list, feat, reducer='mean')
-        feat_mean = batch_mean[batch_indx]
+        feat_mean = batch_mean[batch_index]
         ### Function torch.repeat_interleave() is faster. But it makes seed fail, the result is not reproducible.
         # feat_mean = torch.repeat_interleave(batch_mean, batch_list, dim=0, output_size = feat.shape[0])
         feat_diff = feat - feat_mean
-        batch_diff, _ = to_dense_batch(feat_diff, batch_indx)
+        batch_diff, _ = to_batch_tensor(feat_diff, batch_list, batch_index)
         batch_cov = batch_diff.transpose(1, 2).bmm(batch_diff)
         batch_cov = batch_cov/((batch_list-1).reshape(batch_list.shape[0],1,1))
-        # batch_cov = batch_cov + self.batch_perturbation(batch_cov, self.snr_value)
         batch_cov = FastMPNSPDMatrixFunction.apply(batch_cov, self.iterN)
 
         return batch_cov.bmm(batch_mean.unsqueeze(2)).squeeze(2)
