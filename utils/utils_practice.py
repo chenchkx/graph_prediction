@@ -7,5 +7,22 @@ def batch_tensor_trace(batch_tensor):
     batch_trace = torch.reshape(batch_trace, (batch_trace.shape[0], 1, 1))
     return batch_trace
 
+def to_batch_tensor(tensor, num_nodes, batch_index, fill_value=0):
+    if batch_index is None:
+        batch_index = torch.arange(len(num_nodes)).to(num_nodes.device).repeat_interleave(num_nodes) 
+    max_num_nodes = int(num_nodes.max())
+    batch_size = int(batch_index.max()) + 1
+    cum_nodes = torch.cat([batch_index.new_zeros(1), num_nodes.cumsum(dim=0)])
+    
+    idx = torch.arange(batch_index.size(0), dtype=torch.long, device=tensor.device)
+    idx = (idx - cum_nodes[batch_index]) + (batch_index * max_num_nodes)
+    size = [batch_size * max_num_nodes] + list(tensor.size())[1:]
+    out = tensor.new_full(size, fill_value)
+    out[idx] = tensor
+    out = out.view([batch_size, max_num_nodes] + list(tensor.size())[1:])
 
+    mask = torch.zeros(batch_size * max_num_nodes, dtype=torch.bool, device=tensor.device)
+    mask[idx] = 1
+    mask = mask.view(batch_size, max_num_nodes)
+    return out, mask
 
