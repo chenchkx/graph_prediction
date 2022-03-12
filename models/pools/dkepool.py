@@ -7,8 +7,6 @@ from torch.autograd import Function
 from dgl.ops import segment
 from utils.utils_practice import batch_tensor_trace, to_batch_tensor, batch_tensor_var_mask
 
-
-
 # Fast Matrix Power Normalized SPD Matrix Function
 class FastMPNSPDMatrixFunction(Function):
     @staticmethod
@@ -128,7 +126,7 @@ class DKEPooling(nn.Module):
     def forward(self, batch_list, feat):
         batch_index = torch.arange(len(batch_list)).to(feat.device).repeat_interleave(batch_list) 
         feat = feat + self.batch_gaussperturbation(feat, batch_list, batch_index, snr=self.snr_value)
-        batch_mean = segment.segment_reduce(batch_list, feat, reducer='mean')
+        batch_mean = segment.segment_reduce(batch_list, feat, reducer='mean') # a toolkit in dgl
         feat_mean = batch_mean[batch_index]
         ### Function torch.repeat_interleave() is faster. But it makes seed fail, the result is not reproducible.
         # feat_mean = torch.repeat_interleave(batch_mean, batch_list, dim=0, output_size = feat.shape[0])

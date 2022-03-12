@@ -37,3 +37,4 @@ def batch_tensor_var_mask(tensor, num_nodes, batch_index=None):
     batch_tensor[~batch_mask] = 0
     batch_tensor_var = torch.sum(batch_tensor*batch_tensor, dim=(1,2))/(num_nodes*tensor.shape[1])
     return batch_tensor, batch_tensor_var, batch_mask
+
