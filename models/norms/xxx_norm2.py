@@ -6,10 +6,10 @@ import torch.nn.functional as F
 from dgl.ops import segment
 from utils.utils_practice import repeat_tensor_interleave
 
-class XXX_Norm(nn.BatchNorm1d):
+class XXX_Norm2(nn.BatchNorm1d):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
                  track_running_stats=True):
-        super(XXX_Norm, self).__init__(num_features, eps, momentum, affine, track_running_stats)
+        super(XXX_Norm2, self).__init__(num_features, eps, momentum, affine, track_running_stats)
         if self.affine:
             self.weight = nn.Parameter(torch.ones(num_features))
             self.bias = nn.Parameter(torch.zeros(num_features))
@@ -46,7 +46,7 @@ class XXX_Norm(nn.BatchNorm1d):
         tensor_var = repeat_tensor_interleave(tensor_var, batch_num_nodes)
         tensor_normalized = tensor / torch.sqrt(tensor_var + self.eps)
 
-        var_scale = torch.sigmoid(self.var_scale_weight * self.running_var/(tensor_var+self.eps))
+        var_scale = torch.sigmoid(self.var_scale_weight * self.running_var/(tensor_var+self.eps) + self.var_scale_bias)
         if self.affine:
             results = self.weight*var_scale*tensor_normalized + self.bias
         else:

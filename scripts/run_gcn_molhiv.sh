@@ -3,13 +3,13 @@
 set -e
 
 
-device=0
+device=2
 dataset='ogbg-molhiv'
 model='GCN'
-bs=128
+bs=256
 nlayer=4
 
-for lr in 1e-3;do
+for lr in 1e-3 5e-4;do
     for seed in 0;do
        for wd in 0;do
 
@@ -62,12 +62,22 @@ for lr in 1e-3;do
                --dataset $dataset \
                --model $model \
                --num_layer $nlayer \
-               --norm_type 'None' \
+               --norm_type 'xn2' \
                --batch_size $bs \
                --lr $lr \
                --seed $seed \
                --weight_decay $wd
 
+        python main.py \
+               --device $device \
+               --dataset $dataset \
+               --model $model \
+               --num_layer $nlayer \
+               --norm_type 'None' \
+               --batch_size $bs \
+               --lr $lr \
+               --seed $seed \
+               --weight_decay $wd
 
        done
     done

@@ -9,6 +9,7 @@ model='GCN'
 nlayer=4
 bs=128
 
+
 for lr in 1e-3;do
     for seed in 0 1;do
        for wd in 0 5e-4 1e-4;do
@@ -62,6 +63,17 @@ for lr in 1e-3;do
                --dataset $dataset \
                --model $model \
                --num_layer $nlayer \
+               --norm_type 'xn2' \
+               --batch_size $bs \
+               --lr $lr \
+               --seed $seed \
+               --weight_decay $wd
+
+        python main.py \
+               --device $device \
+               --dataset $dataset \
+               --model $model \
+               --num_layer $nlayer \
                --norm_type 'None' \
                --batch_size $bs \
                --lr $lr \
@@ -70,5 +82,4 @@ for lr in 1e-3;do
        done
     done
 done
-
 

@@ -43,16 +43,16 @@ if __name__ =='__main__':
     parser.add_argument("--epoch_slice", type=int, default=0)
     parser.add_argument("--num_layer", type=int, default=3)
     parser.add_argument("--embed_dim", type=int, default=128)
-    parser.add_argument("--norm_type", type=str, default='xn', choices=['bn', 'gn', 'in', 'ln', 'ln2', 'xn', 'None'])
+    parser.add_argument("--norm_type", type=str, default='xn2', choices=['bn', 'gn', 'in', 'xn', 'xn2', 'None'])
     parser.add_argument("--pool_type", type=str, default="mean", choices=['dke', 'sum', 'mean', 'max'])
     parser.add_argument("--batch_size", type=int, default=128)
-    parser.add_argument("--lr_warmup_type", type=str, default='step', choices=['step','cosine','linear','None'])
+    parser.add_argument("--lr_warmup_type", type=str, default='None', choices=['step','cosine','linear','None'])
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--dropout", type=float, default=0.5)
     parser.add_argument("--weight_decay", type=float, default=1e-4)
     parser.add_argument("--loss_type", type=str, default='ogb', choices=['ogb', 'bce', 'mce'], 
                         help='ogb: the loss and metric are consistent with those in ogb paper')
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--runs", type=int, default=0, 
                         help='running times of the program')
     
