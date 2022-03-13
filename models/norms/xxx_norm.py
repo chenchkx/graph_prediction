@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 
 from dgl.ops import segment
+from utils.utils_practice import repeat_tensor_interleave
 
 class XXX_Norm(nn.Module):
     ### Graph norm implemented by dgl toolkit
@@ -28,6 +29,9 @@ class XXX_Norm(nn.Module):
     def forward(self, graph, tensor):
         batch_list = graph.batch_num_nodes()    
         tensor_abs = torch.abs(tensor)
+        tensor_mean = segment.segment_reduce(batch_list, tensor_abs, reducer='mean')
+        tensor_mean = repeat_tensor_interleave(tensor_mean, batch_list)
+
         tensor_max = segment.segment_reduce(batch_list, tensor_abs, reducer='max')
         tensor_max[tensor_max<=1e-12] = 1e-12
         tensor_max = tensor_max.max(1)[0].unsqueeze(1).repeat(1,tensor_max.shape[1])

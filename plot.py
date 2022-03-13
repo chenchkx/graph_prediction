@@ -20,9 +20,9 @@ parser.add_argument("--epoch_slice", type=int, default=0)
 parser.add_argument("--num_layer", type=int, default=4)
 parser.add_argument("--embed_dim", type=int, default=128)
 parser.add_argument("--norm_type", type=str, default='None', choices=['None', 'bn', 'gn', 'mn'])
-parser.add_argument("--pool_type", type=str, default="dke", choices=['dke', 'sum', 'mean', 'max'])
+parser.add_argument("--pool_type", type=str, default="mean", choices=['dke', 'sum', 'mean', 'max'])
 parser.add_argument("--batch_size", type=int, default=128)
-parser.add_argument("--lr_warmup_type", type=str, default='None', choices=['step','cosine','linear','None'])
+parser.add_argument("--lr_warmup_type", type=str, default='step', choices=['step','cosine','linear','None'])
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--dropout", type=float, default=0.5)
 parser.add_argument("--weight_decay", type=float, default=0.0)
@@ -44,7 +44,7 @@ if not os.path.exists(args.perf_imgs_dir):
     os.mkdir(args.perf_imgs_dir)
 
 
-curve_set = 'valid'
+curve_set = 'train'
 curve_metric = 'loss1' # loss or metric
 if curve_metric != 'loss':
     curve_metric = get_metric(args)
@@ -54,13 +54,13 @@ if curve_metric != 'loss':
 metric_selected = (f"{curve_set}-"+ f"{curve_metric}")
 
 
-## 
-# args.norm_type = 'None'
-# args = args_(args)
-# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-# logs_table = pd.read_excel(xlsx_path)
-# logs_epochs = logs_table[metric_selected]
-# plt.plot(range(len(logs_epochs)), logs_epochs, label='None')
+### 
+args.norm_type = 'None'
+args = args_(args)
+xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+logs_table = pd.read_excel(xlsx_path)
+logs_epochs = logs_table[metric_selected]
+plt.plot(range(len(logs_epochs)), logs_epochs, label='None')
 
 ### 
 args.norm_type = 'bn'
@@ -70,7 +70,7 @@ logs_table = pd.read_excel(xlsx_path)
 logs_epochs = logs_table[metric_selected]
 plt.plot(range(len(logs_epochs)), logs_epochs, label='bn')
 
-
+### 
 args.norm_type = 'gn'
 args = args_(args)
 xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
@@ -78,21 +78,21 @@ logs_table = pd.read_excel(xlsx_path)
 logs_epochs = logs_table[metric_selected]
 plt.plot(range(len(logs_epochs)), logs_epochs, label='gn')
 
-
-args.norm_type = 'ln'
+### 
+args.norm_type = 'in'
 args = args_(args)
 xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
 logs_table = pd.read_excel(xlsx_path)
 logs_epochs = logs_table[metric_selected]
-plt.plot(range(len(logs_epochs)), logs_epochs, label='ln')
+plt.plot(range(len(logs_epochs)), logs_epochs, label='in')
 
-
-args.norm_type = 'ln2'
+### 
+args.norm_type = 'xn'
 args = args_(args)
 xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
 logs_table = pd.read_excel(xlsx_path)
 logs_epochs = logs_table[metric_selected]
-plt.plot(range(len(logs_epochs)), logs_epochs, label='ln2')
+plt.plot(range(len(logs_epochs)), logs_epochs, label='xn')
 
 
 args.norm_type = 'mix'

@@ -3,6 +3,10 @@
 import torch
 from dgl.ops import segment
 
+def repeat_tensor_interleave(tensor, num_list):
+    data_index = torch.arange(len(num_list)).to(tensor.device).repeat_interleave(num_list)
+    return tensor[data_index]
+
 def batch_tensor_trace(batch_tensor):
     assert batch_tensor.shape[1] == batch_tensor.shape[2]
     batch_trace = batch_tensor.diagonal(offset=0, dim1=-1, dim2=-2).sum(-1)
