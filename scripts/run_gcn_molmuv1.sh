@@ -19,7 +19,7 @@ for lr in 1e-3 5e-4;do
                --dataset $dataset \
                --model $model \
                --num_layer $nlayer \
-               --norm_type 'bn' \
+               --norm_type 'xn' \
                --batch_size $bs \
                --lr_warmup_type $lr_warmup_type \
                --lr $lr \

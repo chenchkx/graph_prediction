@@ -3,34 +3,29 @@
 set -e
 
 
-device=1
+device=3
 dataset='ogbg-molpcba'
 model='GCN'
-bs=256
+bs=512
+nlayer=4
+lr_warmup_type='None'
 
-for lr in 1e-3 1e-4;do
+for lr in 1e-3 5e-4;do
     for seed in 0;do
-       for wd in 0 5e-4 5e-5;do
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --norm_type 'None' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
+       for wd in 0;do
 
         python main.py \
                --device $device \
                --dataset $dataset \
                --model $model \
-               --norm_type 'gn' \
+               --num_layer $nlayer \
+               --norm_type 'bn' \
                --batch_size $bs \
+               --lr_warmup_type $lr_warmup_type \
                --lr $lr \
                --seed $seed \
                --weight_decay $wd
-               
+
        done
     done
 done

@@ -4,9 +4,9 @@ set -e
 
 
 device=3
-dataset='ogbg-molmuv'
+dataset='ogbg-molpcba'
 model='GCN'
-bs=256
+bs=512
 nlayer=4
 lr_warmup_type='None'
 
@@ -19,7 +19,7 @@ for lr in 1e-3 5e-4;do
                --dataset $dataset \
                --model $model \
                --num_layer $nlayer \
-               --norm_type 'bn' \
+               --norm_type 'xn' \
                --batch_size $bs \
                --lr_warmup_type $lr_warmup_type \
                --lr $lr \
