@@ -90,13 +90,12 @@ class GCN(nn.Module):
         self.num_layer = num_layer
         # input layer
         self.atom_encoder = OGB_NodeEncoder(dataset_name, embed_dim)
-        # convolutional layer & bond layer 
+        # middle layer. i.e., convolutional layer
         self.bond_layers = nn.ModuleList()
         self.conv_layers = nn.ModuleList()
         self.norm_layers = nn.ModuleList() 
         for i in range(num_layer):
             self.conv_layers.append(GCNConvLayer(dataset_name, embed_dim))
-            # self.conv_layers.append(GCNConvLayer_SparseAdj(embed_dim))
             self.norm_layers.append(Norms(norm_type, embed_dim))
         # output layer
         self.predict = nn.Sequential(
@@ -106,11 +105,11 @@ class GCN(nn.Module):
             nn.Linear(embed_dim//2, output_dim)
         )   
 
-        # modules in GNN
-        self.pooling = Global_Pooling(pooling_type)
-
+        # other modules in GNN
         self.activation = activation
         self.dropout = nn.Dropout(dropout)
+        self.pooling = Global_Pooling(pooling_type)
+
 
     def forward(self, graphs, nfeat, efeat):
         # initializing node features h_n
