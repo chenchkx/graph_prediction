@@ -12,40 +12,7 @@ bs=128
 
 for lr in 1e-3;do
     for seed in 0 1;do
-       for wd in 0 5e-4 1e-4;do
-
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --num_layer $nlayer \
-               --norm_type 'bn' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
-
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --num_layer $nlayer \
-               --norm_type 'gn' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
-
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --num_layer $nlayer \
-               --norm_type 'in' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
+       for wd in 0 1e-4;do
 
         python main.py \
                --device $device \
@@ -74,11 +41,23 @@ for lr in 1e-3;do
                --dataset $dataset \
                --model $model \
                --num_layer $nlayer \
-               --norm_type 'None' \
+               --norm_type 'bn' \
                --batch_size $bs \
                --lr $lr \
                --seed $seed \
                --weight_decay $wd
+
+
+       #  python main.py \
+       #         --device $device \
+       #         --dataset $dataset \
+       #         --model $model \
+       #         --num_layer $nlayer \
+       #         --norm_type 'None' \
+       #         --batch_size $bs \
+       #         --lr $lr \
+       #         --seed $seed \
+       #         --weight_decay $wd
        done
     done
 done
