@@ -11,7 +11,6 @@ from cmath import inf
 from sklearn import metrics 
 from ogb.graphproppred import Evaluator
 from torch.optim.lr_scheduler import LambdaLR
-from transformers.optimization import get_cosine_schedule_with_warmup, get_linear_schedule_with_warmup
 from optims.schedulers.schedulers import LR_Schedulers
 
 cls_criterion = nn.BCEWithLogitsLoss()
