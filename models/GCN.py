@@ -91,7 +91,6 @@ class GCN(nn.Module):
         # input layer
         self.atom_encoder = OGB_NodeEncoder(dataset_name, embed_dim)
         # middle layer. i.e., convolutional layer
-        self.bond_layers = nn.ModuleList()
         self.conv_layers = nn.ModuleList()
         self.norm_layers = nn.ModuleList() 
         for i in range(num_layer):
