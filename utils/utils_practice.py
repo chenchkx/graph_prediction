@@ -3,9 +3,12 @@
 import torch
 from dgl.ops import segment
 
-def repeat_tensor_interleave(tensor, num_list):
-    data_index = torch.arange(len(num_list)).to(tensor.device).repeat_interleave(num_list)
-    return tensor[data_index]
+def repeat_tensor_interleave(tensor, num_list, faster=False):
+### torch.repeat_interleave() running is faster. But it makes seed fail, the result is not reproducible.
+    if faster:
+        return torch.repeat_interleave(tensor, num_list, dim=0, output_size=torch.sum(num_list))
+    else:
+        return tensor[torch.arange(len(num_list)).to(tensor.device).repeat_interleave(num_list)]
 
 def batch_tensor_trace(batch_tensor):
     assert batch_tensor.shape[1] == batch_tensor.shape[2]
