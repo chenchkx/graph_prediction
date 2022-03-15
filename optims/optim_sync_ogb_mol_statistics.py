@@ -245,9 +245,9 @@ class ModelOptLearning_OGB_HIV_Statistics:
                 torch.save(self.model.state_dict(), dict_file_path)
 
             # get the statistics information of current epoch 
-            train_stas_table = self.statistics(self.model, self.train_loader, train_stas_table)
-            valid_stas_table = self.statistics(self.model, self.valid_loader, valid_stas_table)
-            test_stas_table = self.statistics(self.model, self.test_loader, test_stas_table)
+            # train_stas_table = self.statistics(self.model, self.train_loader, train_stas_table)
+            # valid_stas_table = self.statistics(self.model, self.valid_loader, valid_stas_table)
+            # test_stas_table = self.statistics(self.model, self.test_loader, test_stas_table)
 
             scheduler.step()
         
@@ -256,7 +256,7 @@ class ModelOptLearning_OGB_HIV_Statistics:
         logs_table.to_excel(os.path.join(self.args.perf_xlsx_dir, self.args.identity+'.xlsx'))
         if not os.path.exists(self.args.stas_xlsx_dir):
             os.mkdir(self.args.stas_xlsx_dir)
-        train_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-train.xlsx'))
-        valid_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-valid.xlsx'))
-        test_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-test.xlsx'))
+        # train_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-train.xlsx'))
+        # valid_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-valid.xlsx'))
+        # test_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-test.xlsx'))
 

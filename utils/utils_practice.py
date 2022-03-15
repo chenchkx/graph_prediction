@@ -3,12 +3,14 @@
 import torch
 from dgl.ops import segment
 
-def repeat_tensor_interleave(tensor, num_list, faster=False):
-### torch.repeat_interleave() running is faster. But it makes seed fail, the result is not reproducible.
+def repeat_tensor_interleave(tensor, batch_nodes, batch_index=None, faster=False):
+    if batch_index is None:
+        batch_index = torch.arange(len(batch_nodes)).to(batch_nodes.device).repeat_interleave(batch_nodes) 
     if faster:
-        return torch.repeat_interleave(tensor, num_list, dim=0, output_size=torch.sum(num_list))
+        # torch.repeat_interleave() running is faster. But it makes seed fail, the result is not reproducible.
+        return torch.repeat_interleave(tensor, batch_nodes, dim=0, output_size=torch.sum(batch_nodes))
     else:
-        return tensor[torch.arange(len(num_list)).to(tensor.device).repeat_interleave(num_list)]
+        return tensor[batch_index]
 
 def batch_tensor_trace(batch_tensor):
     assert batch_tensor.shape[1] == batch_tensor.shape[2]
@@ -16,12 +18,12 @@ def batch_tensor_trace(batch_tensor):
     batch_trace = torch.reshape(batch_trace, (batch_trace.shape[0], 1, 1))
     return batch_trace
 
-def to_batch_tensor(tensor, num_nodes, batch_index, fill_value=0):
+def to_batch_tensor(tensor, batch_nodes, batch_index, fill_value=0):
     if batch_index is None:
-        batch_index = torch.arange(len(num_nodes)).to(num_nodes.device).repeat_interleave(num_nodes) 
-    max_num_nodes = int(num_nodes.max())
+        batch_index = torch.arange(len(batch_nodes)).to(batch_nodes.device).repeat_interleave(batch_nodes) 
+    max_num_nodes = int(batch_nodes.max())
     batch_size = int(batch_index.max()) + 1
-    cum_nodes = torch.cat([batch_index.new_zeros(1), num_nodes.cumsum(dim=0)])
+    cum_nodes = torch.cat([batch_index.new_zeros(1), batch_nodes.cumsum(dim=0)])
     
     idx = torch.arange(batch_index.size(0), dtype=torch.long, device=tensor.device)
     idx = (idx - cum_nodes[batch_index]) + (batch_index * max_num_nodes)
@@ -35,13 +37,13 @@ def to_batch_tensor(tensor, num_nodes, batch_index, fill_value=0):
     mask = mask.view(batch_size, max_num_nodes)
     return out, mask
 
-def batch_tensor_var_mask(tensor, num_nodes, batch_index=None):
+def batch_tensor_var_mask(tensor, batch_nodes, batch_index=None):
     if batch_index is None:
-        batch_index = torch.arange(len(num_nodes)).to(num_nodes.device).repeat_interleave(num_nodes) 
-    tensor_means = torch.mean(segment.segment_reduce(num_nodes, tensor, reducer='mean'), 1)
-    batch_tensor, batch_mask = to_batch_tensor(tensor, num_nodes, batch_index)
+        batch_index = torch.arange(len(batch_nodes)).to(batch_nodes.device).repeat_interleave(batch_nodes) 
+    tensor_means = torch.mean(segment.segment_reduce(batch_nodes, tensor, reducer='mean'), 1)
+    batch_tensor, batch_mask = to_batch_tensor(tensor, batch_nodes, batch_index)
     batch_tensor = batch_tensor-tensor_means.reshape(tensor_means.shape[0],1,1)
     batch_tensor[~batch_mask] = 0
-    batch_tensor_var = torch.sum(batch_tensor*batch_tensor, dim=(1,2))/(num_nodes*tensor.shape[1])
+    batch_tensor_var = torch.sum(batch_tensor*batch_tensor, dim=(1,2))/(batch_nodes*tensor.shape[1])
     return batch_tensor, batch_tensor_var, batch_mask
 

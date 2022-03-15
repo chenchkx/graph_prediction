@@ -3,13 +3,11 @@
 set -e
 
 
-device=2
+device=0
 dataset='ogbg-molhiv'
 model='GCN'
-bs=256
 nlayer=4
-lr_warmup_type='None'
-
+lr_warmup_type='step'
 
 for lr in 1e-3 5e-4;do
     for seed in 0;do
@@ -21,7 +19,6 @@ for lr in 1e-3 5e-4;do
                --model $model \
                --num_layer $nlayer \
                --norm_type 'bn' \
-               --batch_size $bs \
                --lr_warmup_type $lr_warmup_type \
                --lr $lr \
                --seed $seed \

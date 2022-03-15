@@ -6,9 +6,8 @@ set -e
 device=3
 dataset='ogbg-molpcba'
 model='GCN'
-bs=512
 nlayer=4
-lr_warmup_type='None'
+lr_warmup_type='step'
 
 for lr in 1e-3 5e-4;do
     for seed in 0;do
@@ -19,8 +18,7 @@ for lr in 1e-3 5e-4;do
                --dataset $dataset \
                --model $model \
                --num_layer $nlayer \
-               --norm_type 'xn' \
-               --batch_size $bs \
+               --norm_type 'xn2' \
                --lr_warmup_type $lr_warmup_type \
                --lr $lr \
                --seed $seed \

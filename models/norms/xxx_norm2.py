@@ -20,8 +20,13 @@ class XXX_Norm2(nn.BatchNorm1d):
         self.mean_scale_weight = nn.Parameter(torch.zeros(num_features))
         self.var_scale_weight = nn.Parameter(torch.ones(num_features))
         self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
+    
+    def denegative_parameter(self):
+        self.mean_scale_weight.data[self.mean_scale_weight.data<0]=0
+        self.var_scale_weight.data[self.var_scale_weight.data<0]=0
 
     def forward(self, graph, tensor):
+        self.denegative_parameter()
         batch_num_nodes = graph.batch_num_nodes() 
 
         tensor_mean = segment.segment_reduce(batch_num_nodes, tensor, reducer='mean')
@@ -45,14 +50,13 @@ class XXX_Norm2(nn.BatchNorm1d):
         tensor_var = segment.segment_reduce(batch_num_nodes, tensor.pow(2), reducer='mean')
         tensor_var = repeat_tensor_interleave(tensor_var, batch_num_nodes)
         
-        var_scale = self.var_scale_weight*torch.sqrt(self.running_var/(tensor_var+self.eps))
-        var_scale = torch.sigmoid(var_scale)
-        # var_scale = torch.tanh(self.var_scale_weight*self.running_var/(tensor_var+self.eps)-1) + 1
+        var_scale = torch.sqrt(self.running_var/(tensor_var+self.eps))
+        var_scale = self.var_scale_weight*var_scale
         if self.affine:
             results = self.weight*var_scale*bn_output + self.bias
         else:
             results = var_scale*bn_output
-
+        
         return results
 
    
