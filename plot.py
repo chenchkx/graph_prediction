@@ -23,7 +23,7 @@ parser.add_argument("--norm_type", type=str, default='None', choices=['None', 'b
 parser.add_argument("--pool_type", type=str, default="mean", choices=['dke', 'sum', 'mean', 'max'])
 parser.add_argument("--batch_size", type=int, default=256)
 parser.add_argument("--lr_warmup_type", type=str, default='None', choices=['step','cosine','linear','None'])
-parser.add_argument("--lr", type=float, default=5e-4)
+parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--dropout", type=float, default=0.5)
 parser.add_argument("--weight_decay", type=float, default=0.0)
 parser.add_argument("--loss_type", type=str, default='ogb', choices='ogb, bce, mce', 
@@ -44,8 +44,8 @@ if not os.path.exists(args.perf_imgs_dir):
     os.mkdir(args.perf_imgs_dir)
 
 
-curve_set = 'test'
-curve_metric = 'loss1' # loss or metric
+curve_set = 'train'
+curve_metric = 'loss' # loss or metric
 if curve_metric != 'loss':
     curve_metric = get_metric(args)
 ### 'train-loss' 'train-rocauc'  'train-ap'

@@ -13,15 +13,22 @@ from optims.optim_sync_ogb_mol_statistics import ModelOptLearning_OGB_HIV_Statis
 from optims.optim_sync_ogb_ppa_statistics import ModelOptLearning_OGB_PPA_Statistics
 from models.GIN import GIN
 from models.GCN import GCN
-
+nfs_dataset_path1 = '/mnt/nfs/ckx/datasets/ogb/graph/'
+nfs_dataset_path2 = '/nfs4-p1/ckx/datasets/ogb/graph/'
 
 ### load dataset 
 def load_data(args):    
-
+    # check nfs dataset path
+    if os.path.exists(nfs_dataset_path1):
+        args.datadir = nfs_dataset_path1
+    elif os.path.exists(nfs_dataset_path2):
+        args.datadir = nfs_dataset_path2
     dataset = DglGraphPropPredDataset(name=args.dataset, root=args.datadir)
+    # preprocess the node features in ogbg-ppa dataset
     if 'ppa' in args.dataset:
         for g in dataset:
             g[0].ndata['feat'] = torch.zeros(g[0].num_nodes(), dtype=int)
+    # split_idx for training, valid and test 
     split_idx = dataset.get_idx_split()
     train_loader = DataLoader(dataset[split_idx["train"]], batch_size=args.batch_size, shuffle=True, 
                               collate_fn=collate_dgl, num_workers=0)
@@ -71,6 +78,12 @@ def ModelOptLoading(model, optimizer,
 
     return modelOptm
 
+def reset_batch_size(num_graphs):
+    if num_graphs < 10000:
+        return 128
+    else:
+        return 256 if num_graphs < 100000 else 512
+
 def get_ogb_output_dim(dataset, dataset_name):
     if 'mol' in dataset_name:
         return dataset.num_tasks
@@ -79,9 +92,10 @@ def get_ogb_output_dim(dataset, dataset_name):
 
 ### add new arguments
 def args_(args, dataset): 
-  
+
     args.task_type = dataset.task_type
     args.eval_metric = dataset.eval_metric    
+    args.batch_size = reset_batch_size(len(dataset))
     args.output_dim = get_ogb_output_dim(dataset, args.dataset)
     args.identity = (f"{args.dataset}-"+
                      f"{args.model}-"+
