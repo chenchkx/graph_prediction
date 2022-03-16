@@ -17,34 +17,28 @@ class XXX_Norm(nn.BatchNorm1d):
             self.register_parameter('weight', None)
             self.register_parameter('bias', None)
 
-        self.mean_scale_weight = nn.Parameter(torch.zeros(num_features))
-        self.var_scale_weight = nn.Parameter(torch.ones(num_features))
-        self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
-    
+        self.space_mapping_weight = nn.Parameter(torch.ones(num_features))
+        self.space_mapping_bias = nn.Linear(1, num_features)
+        self.space_retrace_weight = nn.Parameter(torch.ones(num_features))
+        self.space_retrace_bias = nn.Embedding(1, num_features)
+
         self.register_buffer('bn_running_mean', torch.zeros(num_features))
         self.register_buffer('bn_num_batches_tracked', torch.tensor(0))
-
+    
     def denegative_parameter(self):
-        self.mean_scale_weight.data[self.mean_scale_weight.data<0]=0
-        self.var_scale_weight.data[self.var_scale_weight.data<0]=0
+        self.space_mapping_weight.data[self.space_mapping_weight.data<0]=0
+        self.space_retrace_weight.data[self.space_retrace_weight.data<0]=0
 
     def forward(self, graph, tensor):
         # self.denegative_parameter()
         batch_num_nodes = graph.batch_num_nodes() 
 
-        if self.training:
-            bn_running_mean = tensor.mean(0, keepdim=False)
-            if self.momentum is not None:
-                self.bn_running_mean.mul_(self.momentum)
-                self.bn_running_mean.add_((1 - self.momentum) * bn_running_mean.data)
-            else: 
-                self.bn_running_mean = self.bn_running_mean+(bn_running_mean.data-self.bn_running_mean)/(self.bn_num_batches_tracked+1)
-            self.bn_num_batches_tracked += 1
-
         tensor_mean = segment.segment_reduce(batch_num_nodes, tensor, reducer='mean')
-        tensor_mean = self.bn_running_mean - tensor_mean
         tensor_mean = repeat_tensor_interleave(tensor_mean, batch_num_nodes)
-        tensor = tensor + self.mean_scale_weight*tensor_mean
+        tensor_diff = tensor - (tensor_mean - (self.running_mean + self.space_mapping_bias.bias))
+        tensor_var = segment.segment_reduce(batch_num_nodes, tensor_diff.pow(2), reducer='mean')
+        tensor_var = repeat_tensor_interleave(tensor_var, batch_num_nodes)
+        tensor_ =  tensor_diff/(self.space_mapping_weight*tensor_var+self.eps)
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else (self.running_mean is None) and (self.running_var is None)
@@ -55,19 +49,14 @@ class XXX_Norm(nn.BatchNorm1d):
                     exponential_average_factor = 1.0 / float(self.num_batches_tracked)
                 else: 
                     exponential_average_factor = self.momentum
-        bn_output = F.batch_norm(
-                    tensor, self.running_mean, self.running_var, None, None,
+        results = F.batch_norm(
+                    tensor_, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-
-        tensor_var = segment.segment_reduce(batch_num_nodes, tensor.pow(2), reducer='mean')
-        tensor_var = repeat_tensor_interleave(tensor_var, batch_num_nodes)
         
-        var_scale = torch.sqrt(self.running_var/(tensor_var+self.eps))
-        var_scale = torch.sigmoid(self.var_scale_weight*var_scale)
         if self.affine:
-            results = self.weight*var_scale*bn_output + self.bias
+            results = self.weight*results + self.bias
         else:
-            results = var_scale*bn_output
+            results = results
         
         return results
 

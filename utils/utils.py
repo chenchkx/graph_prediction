@@ -79,10 +79,10 @@ def ModelOptLoading(model, optimizer,
     return modelOptm
 
 def reset_batch_size(num_graphs):
-    if num_graphs < 10000:
-        return 128
+    if num_graphs < 50000:
+        return 128 if num_graphs < 10000 else 256
     else:
-        return 256 if num_graphs < 100000 else 512
+        return 512 if num_graphs < 100000 else 1024
 
 def get_ogb_output_dim(dataset, dataset_name):
     if 'mol' in dataset_name:

@@ -3,11 +3,12 @@
 set -e
 
 
-device=3
+device=2
 dataset='ogbg-molmuv'
 model='GCN'
 nlayer=4
-lr_warmup_type='step'
+lr_warmup_type='None'
+epochs=350
 
 for lr in 1e-3 5e-4;do
     for seed in 0;do
@@ -17,8 +18,9 @@ for lr in 1e-3 5e-4;do
                --device $device \
                --dataset $dataset \
                --model $model \
+               --epochs $epochs \
                --num_layer $nlayer \
-               --norm_type 'xn2' \
+               --norm_type 'xn' \
                --lr_warmup_type $lr_warmup_type \
                --lr $lr \
                --seed $seed \

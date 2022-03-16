@@ -7,7 +7,8 @@ device=0
 dataset='ogbg-molhiv'
 model='GCN'
 nlayer=4
-lr_warmup_type='step'
+lr_warmup_type='None'
+epochs=350
 
 for lr in 1e-3 5e-4;do
     for seed in 0;do
@@ -17,6 +18,7 @@ for lr in 1e-3 5e-4;do
                --device $device \
                --dataset $dataset \
                --model $model \
+               --epochs $epochs \
                --num_layer $nlayer \
                --norm_type 'bn' \
                --lr_warmup_type $lr_warmup_type \
