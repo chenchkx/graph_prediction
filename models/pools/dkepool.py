@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.autograd import Function
 from dgl.ops import segment
-from utils.utils_practice import batch_tensor_trace, to_batch_tensor, batch_tensor_var_mask
+from utils.utils_practice import *
 
 # Fast Matrix Power Normalized SPD Matrix Function
 class FastMPNSPDMatrixFunction(Function):
@@ -93,10 +93,10 @@ class DKEPooling(nn.Module):
         self.register_buffer('min_trace', torch.tensor(min_trace))
         self.register_buffer('min_power', torch.tensor(min_power))
 
-    def batch_gaussperturbation(self, tensor, batch_list, batch_indx, snr = 15):
+    def batch_gaussperturbation(self, tensor, batch_nodes, batch_indx, snr = 15):
         noise = torch.randn(tensor.shape[0], tensor.shape[1]).to(tensor.device)
-        batch_noise, batch_noise_var, batch_mask = batch_tensor_var_mask(noise, batch_list, batch_indx)
-        batch_tensor_var = batch_tensor_var_mask(tensor, batch_list, batch_indx)[1] 
+        batch_noise, batch_noise_var, batch_mask = batch_tensor_var_mask(noise, batch_nodes, batch_indx)
+        batch_tensor_var = batch_tensor_var_mask(tensor, batch_nodes, batch_indx)[1] 
         batch_var_snr = batch_tensor_var /(10**(snr / 10))
         noise_snr = batch_noise*(torch.sqrt(batch_var_snr) / torch.sqrt(batch_noise_var)).reshape(batch_noise.shape[0],1,1)
         noise_snr = noise_snr[batch_mask]
@@ -123,17 +123,16 @@ class DKEPooling(nn.Module):
         noise_power = noise_power.detach()
         return batch_noise*noise_power.reshape(batch_cov.shape[0],1,1)
 
-    def forward(self, batch_list, feat):
-        batch_index = torch.arange(len(batch_list)).to(feat.device).repeat_interleave(batch_list) 
-        feat = feat + self.batch_gaussperturbation(feat, batch_list, batch_index, snr=self.snr_value)
-        batch_mean = segment.segment_reduce(batch_list, feat, reducer='mean') # a toolkit in dgl
-        feat_mean = batch_mean[batch_index]
-        ### Function torch.repeat_interleave() is faster. But it makes seed fail, the result is not reproducible.
-        # feat_mean = torch.repeat_interleave(batch_mean, batch_list, dim=0, output_size = feat.shape[0])
+    def forward(self, graph, feat):
+        batch_nodes = graph.batch_num_nodes()
+        batch_index = torch.arange(len(batch_nodes)).to(feat.device).repeat_interleave(batch_nodes) 
+        feat = feat + self.batch_gaussperturbation(feat, batch_nodes, batch_index, snr=self.snr_value)
+        batch_mean = segment.segment_reduce(batch_nodes, feat, reducer='mean') # a segment toolkit in dgl
+        feat_mean = repeat_tensor_interleave(batch_mean, batch_nodes, faster=False)
         feat_diff = feat - feat_mean
-        batch_diff, _ = to_batch_tensor(feat_diff, batch_list, batch_index)
+        batch_diff, _ = to_batch_tensor(feat_diff, batch_nodes, batch_index)
         batch_cov = batch_diff.transpose(1, 2).bmm(batch_diff)
-        batch_cov = batch_cov/((batch_list-1).reshape(batch_list.shape[0],1,1))
+        batch_cov = batch_cov/((batch_nodes-1).reshape(batch_nodes.shape[0],1,1))
         batch_cov = FastMPNSPDMatrixFunction.apply(batch_cov, self.iterN)
 
         return batch_cov.bmm(batch_mean.unsqueeze(2)).squeeze(2)

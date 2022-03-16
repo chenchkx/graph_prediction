@@ -7,7 +7,9 @@ def load_logs():
     return 0
 
 
-def args_(args):
+### add new arguments
+def args_(args): 
+
     args.identity = (f"{args.dataset}-"+
                      f"{args.model}-"+
                      f"{args.num_layer}-"+
@@ -33,9 +35,9 @@ def args_(args):
     if not os.path.exists(args.logs_stas_dir):
         os.mkdir(args.logs_stas_dir)
     args.stas_xlsx_dir = os.path.join(args.logs_stas_dir, 'xlsx')
-    args.stas_imgs_dir = os.path.join(args.logs_stas_dir, 'imgs') 
-    return args
+    args.stas_imgs_dir = os.path.join(args.logs_stas_dir, 'imgs')
 
+    return args
 
 def get_metric(args):
 
