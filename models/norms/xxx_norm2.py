@@ -20,17 +20,29 @@ class XXX_Norm2(nn.BatchNorm1d):
         self.mean_scale_weight = nn.Parameter(torch.zeros(num_features))
         self.var_scale_weight = nn.Parameter(torch.ones(num_features))
         self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
+
+        self.register_buffer('bn_running_mean', torch.zeros(num_features))
+        self.register_buffer('bn_num_batches_tracked', torch.tensor(0))
     
     def denegative_parameter(self):
         self.mean_scale_weight.data[self.mean_scale_weight.data<0]=0
         self.var_scale_weight.data[self.var_scale_weight.data<0]=0
 
     def forward(self, graph, tensor):
-        self.denegative_parameter()
+        # self.denegative_parameter()
         batch_num_nodes = graph.batch_num_nodes() 
 
+        if self.training:
+            bn_running_mean = tensor.mean(0, keepdim=False)
+            if self.momentum is not None:
+                self.bn_running_mean.mul_(self.momentum)
+                self.bn_running_mean.add_((1 - self.momentum) * bn_running_mean.data)
+            else: 
+                self.bn_running_mean = self.bn_running_mean+(bn_running_mean.data-self.bn_running_mean)/(self.bn_num_batches_tracked+1)
+            self.bn_num_batches_tracked += 1
+
         tensor_mean = segment.segment_reduce(batch_num_nodes, tensor, reducer='mean')
-        tensor_mean = self.running_mean - tensor_mean
+        tensor_mean = self.bn_running_mean - tensor_mean
         tensor_mean = repeat_tensor_interleave(tensor_mean, batch_num_nodes)
         tensor = tensor + self.mean_scale_weight*tensor_mean
 
