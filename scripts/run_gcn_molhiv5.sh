@@ -3,7 +3,7 @@
 set -e
 
 
-device=2
+device=0
 dataset='ogbg-molhiv'
 model='GCN'
 nlayer=4
@@ -20,10 +20,11 @@ for lr in 1e-3 5e-4;do
                --model $model \
                --epochs $epochs \
                --num_layer $nlayer \
-               --norm_type 'in' \
+               --norm_type 'xn3' \
                --lr_warmup_type $lr_warmup_type \
                --lr $lr \
                --seed $seed \
+               --runs 1 \
                --weight_decay $wd
 
        done

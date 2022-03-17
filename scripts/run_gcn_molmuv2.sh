@@ -20,7 +20,7 @@ for lr in 1e-3 5e-4;do
                --model $model \
                --epochs $epochs \
                --num_layer $nlayer \
-               --norm_type 'xn' \
+               --norm_type 'xn2' \
                --lr_warmup_type $lr_warmup_type \
                --lr $lr \
                --seed $seed \

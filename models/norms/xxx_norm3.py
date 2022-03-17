@@ -6,10 +6,10 @@ import torch.nn.functional as F
 from dgl.ops import segment
 from utils.utils_practice import repeat_tensor_interleave
 
-class XXX_Norm2(nn.BatchNorm1d):
+class XXX_Norm3(nn.BatchNorm1d):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
                  track_running_stats=True):
-        super(XXX_Norm2, self).__init__(num_features, eps, momentum, affine, track_running_stats)
+        super(XXX_Norm3, self).__init__(num_features, eps, momentum, affine, track_running_stats)
         if self.affine:
             self.weight = nn.Parameter(torch.ones(num_features))
             self.bias = nn.Parameter(torch.zeros(num_features))
@@ -22,9 +22,11 @@ class XXX_Norm2(nn.BatchNorm1d):
     def forward(self, graph, tensor):
         # self.denegative_parameter()
         batch_num_nodes = graph.batch_num_nodes()      
-        mean = segment.segment_reduce(batch_num_nodes, tensor, reducer='mean')
-        mean = repeat_tensor_interleave(mean, batch_num_nodes)
-        tensor = tensor - self.center_weight * mean        
+        tensor_max = segment.segment_reduce(batch_num_nodes, tensor, reducer='max')
+        tensor_min = segment.segment_reduce(batch_num_nodes, tensor, reducer='min')
+        tensor_max = repeat_tensor_interleave(tensor_max, batch_num_nodes)
+        tensor_min = repeat_tensor_interleave(tensor_min, batch_num_nodes)
+        tensor = (tensor-tensor_min+self.eps)/(tensor_max-tensor_min+self.eps)      
         # tensor = tensor - self.center_weight*tensor.mean(0, keepdim=False)
         # tensor = torch.sign(tensor)*torch.pow(tensor.abs()+self.eps, 0.25)
 
