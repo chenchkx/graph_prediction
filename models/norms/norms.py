@@ -8,12 +8,12 @@ from models.norms.instance_norm import InstanceNorm
 from models.norms.xxx_norm import XXX_Norm
 from models.norms.xxx_norm2 import XXX_Norm2
 from models.norms.xxx_norm3 import XXX_Norm3
-
+from models.norms.xxx_norm4 import XXX_Norm4
 class Norms(nn.Module):
 
     def __init__(self, norm_type = 'bn', embed_dim=300, print_info=None):
         super(Norms, self).__init__()
-        assert norm_type in ['bn', 'gn', 'in', 'xn', 'xn2', 'xn3', 'None']
+        assert norm_type in ['bn', 'gn', 'in', 'xn', 'xn2', 'xn3', 'xn4', 'None']
         self.norm_type = norm_type
         self.norm = None
         if norm_type == 'bn':
@@ -28,7 +28,8 @@ class Norms(nn.Module):
             self.norm = XXX_Norm2(embed_dim)      
         elif norm_type == 'xn3':
             self.norm = XXX_Norm3(embed_dim)
-
+        elif norm_type == 'xn4':
+            self.norm = XXX_Norm4(embed_dim)
     def forward(self, graphs, tensor):
 
         if self.norm_type == 'None':
