@@ -3,7 +3,7 @@
 set -e
 
 
-device=0
+device=2
 dataset='ogbg-molhiv'
 model='GCN'
 nlayer=4
@@ -24,7 +24,7 @@ for lr in 1e-3 5e-4;do
                --lr_warmup_type $lr_warmup_type \
                --lr $lr \
                --seed $seed \
-               --runs 1 \
+               --runs 0 \
                --weight_decay $wd
 
        done

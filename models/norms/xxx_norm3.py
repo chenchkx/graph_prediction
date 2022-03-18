@@ -22,11 +22,15 @@ class XXX_Norm3(nn.BatchNorm1d):
     def forward(self, graph, tensor):
         # self.denegative_parameter()
         batch_num_nodes = graph.batch_num_nodes()      
-        tensor_max = segment.segment_reduce(batch_num_nodes, tensor, reducer='max')
-        tensor_min = segment.segment_reduce(batch_num_nodes, tensor, reducer='min')
+        # tensor_max = segment.segment_reduce(batch_num_nodes, tensor, reducer='max')
+        # tensor_min = segment.segment_reduce(batch_num_nodes, tensor, reducer='min')
+        # tensor_max = repeat_tensor_interleave(tensor_max, batch_num_nodes)
+        # tensor_min = repeat_tensor_interleave(tensor_min, batch_num_nodes)
+
+        tensor_max = segment.segment_reduce(batch_num_nodes, tensor.abs(), reducer='max')
         tensor_max = repeat_tensor_interleave(tensor_max, batch_num_nodes)
-        tensor_min = repeat_tensor_interleave(tensor_min, batch_num_nodes)
-        tensor = (tensor-tensor_min+self.eps)/(tensor_max-tensor_min+self.eps)      
+
+        tensor = tensor/(tensor_max+self.eps)      
         # tensor = tensor - self.center_weight*tensor.mean(0, keepdim=False)
         # tensor = torch.sign(tensor)*torch.pow(tensor.abs()+self.eps, 0.25)
 

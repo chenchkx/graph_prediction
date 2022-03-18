@@ -43,7 +43,7 @@ if __name__ =='__main__':
     parser.add_argument("--epoch_slice", type=int, default=0)
     parser.add_argument("--num_layer", type=int, default=3)
     parser.add_argument("--embed_dim", type=int, default=128)
-    parser.add_argument("--norm_type", type=str, default='xn3', choices=['bn', 'gn', 'in', 'xn', 'xn2', 'xn3', 'None'])
+    parser.add_argument("--norm_type", type=str, default='gn', choices=['bn', 'gn', 'in', 'xn', 'xn2', 'xn3', 'None'])
     parser.add_argument("--pool_type", type=str, default="mean", choices=['dke', 'sum', 'mean', 'max'])
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--lr_warmup_type", type=str, default='None', choices=['step','cosine','linear','None'])
