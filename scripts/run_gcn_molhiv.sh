@@ -10,7 +10,7 @@ nlayer=4
 lr_warmup_type='None'
 epochs=350
 
-for lr in 1e-3 5e-4;do
+for lr in 1e-3;do
     for seed in 0;do
        for wd in 0;do
 

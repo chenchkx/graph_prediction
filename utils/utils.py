@@ -45,8 +45,9 @@ def load_data(args):
 ### load gnn model
 def load_model(args):
     if args.model == 'GCN':
-        model = GCN(args.dataset, args.embed_dim, args.output_dim, args.num_layer, 
-                    norm_type = args.norm_type, pooling_type = args.pool_type).to(args.device)
+        model = GCN(args.dataset, args.embed_dim, args.output_dim, args.num_layer,
+                    norm_type=args.norm_type, pooling_type=args.pool_type,
+                    activation=args.activation, dropout=args.dropout).to(args.device)
     elif args.model == 'GIN':
         model = GIN(args.dataset, args.embed_dim, args.output_dim, args.num_layer, args.norm_type).to(args.device)
     print('- ' * 30)
@@ -101,14 +102,15 @@ def args_(args, dataset):
                      f"{args.model}-"+
                      f"{args.num_layer}-"+
                      f"{args.embed_dim}-"+
-                     f"{args.norm_type}-"+
                      f"{args.pool_type}-"+
-                     f"{args.batch_size}-"+
-                     f"{args.lr_warmup_type}-"+
-                     f"{args.lr}-"+
+                     f"{args.norm_type}-"+
+                     f"{args.activation}-"+
                      f"{args.dropout}-"+
+                     f"{args.lr_warmup_type}-"+
+                     f"{args.lr}-"+  
                      f"{args.weight_decay}-"+
                      f"{args.loss_type}-"+
+                     f"{args.batch_size}-"+
                      f"{args.seed}-"+
                      f"{args.runs}"
                      )

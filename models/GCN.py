@@ -3,9 +3,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import dgl.function as fn
-from models.encoders.encoders import OGB_NodeEncoder, OGB_EdgeEncoder
-from models.norms.norms import Norms
-from models.pools.global_pools import Global_Pooling
+from models.encoder.ogb_encoder import OGB_NodeEncoder, OGB_EdgeEncoder
+from models.norm.gnn_norm import GNN_Norm
+from models.pool.global_pool import GlobalPooling
+from models.activation.local_activation import LocalActivation
 
 class GCNConvLayer_SparseAdj(nn.Module):
     def __init__(self, embed_dim, aggregator_type='mean', self_loops=True):
@@ -85,7 +86,7 @@ class GCNConvLayer(nn.Module):
 class GCN(nn.Module):
     def __init__(self, dataset_name, embed_dim, output_dim, num_layer, 
                        norm_type='bn', pooling_type="mean", 
-                       activation=F.relu, dropout=0.5):
+                       activation='relu', dropout=0.5):
         super(GCN, self).__init__()
         self.num_layer = num_layer
         # input layer
@@ -95,7 +96,7 @@ class GCN(nn.Module):
         self.norm_layers = nn.ModuleList() 
         for i in range(num_layer):
             self.conv_layers.append(GCNConvLayer(dataset_name, embed_dim))
-            self.norm_layers.append(Norms(norm_type, embed_dim))
+            self.norm_layers.append(GNN_Norm(norm_type, embed_dim))
         # output layer
         self.predict = nn.Sequential(
             nn.Linear(embed_dim, embed_dim//2),
@@ -103,11 +104,12 @@ class GCN(nn.Module):
             nn.Dropout(p=dropout),
             nn.Linear(embed_dim//2, output_dim)
         )   
-
+        # self.predict = nn.Linear(embed_dim, output_dim)  
+        
         # other modules in GNN
-        self.activation = activation
+        self.activation = LocalActivation(activation)
         self.dropout = nn.Dropout(dropout)
-        self.pooling = Global_Pooling(pooling_type)
+        self.pooling = GlobalPooling(pooling_type)
 
 
     def forward(self, graphs, nfeat, efeat):
@@ -122,11 +124,8 @@ class GCN(nn.Module):
             self.conv_feature.append(h_n)
             h_n = self.norm_layers[layer](graphs, h_n)
             self.norm_feature.append(h_n)
-            # activation 
-            if layer!=(self.num_layer-1):
-                h_n = self.dropout(self.activation(h_n))
-            else:
-                h_n = h_n
+            # activation
+            h_n = self.dropout(self.activation(h_n))
             # h_n = h_n + x                   
         # pooling & prediction
         g_n = self.pooling(graphs, h_n)

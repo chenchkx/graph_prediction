@@ -128,7 +128,7 @@ class DKEPooling(nn.Module):
         batch_index = torch.arange(len(batch_nodes)).to(feat.device).repeat_interleave(batch_nodes) 
         feat = feat + self.batch_gaussperturbation(feat, batch_nodes, batch_index, snr=self.snr_value)
         batch_mean = segment.segment_reduce(batch_nodes, feat, reducer='mean') # a segment toolkit in dgl
-        feat_mean = repeat_tensor_interleave(batch_mean, batch_nodes, faster=False)
+        feat_mean = repeat_tensor_interleave(batch_mean, batch_nodes)
         feat_diff = feat - feat_mean
         batch_diff, _ = to_batch_tensor(feat_diff, batch_nodes, batch_index)
         batch_cov = batch_diff.transpose(1, 2).bmm(batch_diff)

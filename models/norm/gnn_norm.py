@@ -2,17 +2,17 @@
 import torch
 import torch.nn as nn
 
-from models.norms.graph_norm import GraphNorm
-from models.norms.local_bn1d import LocalBN1d
-from models.norms.instance_norm import InstanceNorm
-from models.norms.xxx_norm import XXX_Norm
-from models.norms.xxx_norm2 import XXX_Norm2
-from models.norms.xxx_norm3 import XXX_Norm3
-from models.norms.xxx_norm4 import XXX_Norm4
-class Norms(nn.Module):
+from models.norm.graph_norm import GraphNorm
+from models.norm.local_bn1d import LocalBN1d
+from models.norm.instance_norm import InstanceNorm
+from models.norm.xxx_norm import XXX_Norm
+from models.norm.xxx_norm2 import XXX_Norm2
+from models.norm.xxx_norm3 import XXX_Norm3
+from models.norm.xxx_norm4 import XXX_Norm4
 
+class GNN_Norm(nn.Module):
     def __init__(self, norm_type = 'bn', embed_dim=300, print_info=None):
-        super(Norms, self).__init__()
+        super(GNN_Norm, self).__init__()
         assert norm_type in ['bn', 'gn', 'in', 'xn', 'xn2', 'xn3', 'xn4', 'None']
         self.norm_type = norm_type
         self.norm = None

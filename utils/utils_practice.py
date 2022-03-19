@@ -3,14 +3,14 @@
 import torch
 from dgl.ops import segment
 
-def repeat_tensor_interleave(tensor, batch_nodes, batch_index=None, faster=False):
+def repeat_tensor_interleave(tensor, batch_nodes, batch_index=None, reproduce=True):
     if batch_index is None:
         batch_index = torch.arange(len(batch_nodes)).to(batch_nodes.device).repeat_interleave(batch_nodes) 
-    if faster:
-        # torch.repeat_interleave() running is faster. But it makes seed fail, the result is not reproducible.
-        return torch.repeat_interleave(tensor, batch_nodes, dim=0, output_size=torch.sum(batch_nodes))
-    else:
+    if reproduce:
         return tensor[batch_index]
+    else:
+        # torch.repeat_interleave() for 2-D tensor makes random seed fail, the result is not reproducible.
+        return torch.repeat_interleave(tensor, batch_nodes, dim=0, output_size=torch.sum(batch_nodes))        
 
 def batch_tensor_trace(batch_tensor):
     assert batch_tensor.shape[1] == batch_tensor.shape[2]
@@ -18,7 +18,7 @@ def batch_tensor_trace(batch_tensor):
     batch_trace = torch.reshape(batch_trace, (batch_trace.shape[0], 1, 1))
     return batch_trace
 
-def to_batch_tensor(tensor, batch_nodes, batch_index, fill_value=0):
+def to_batch_tensor(tensor, batch_nodes, batch_index=None, fill_value=0):
     if batch_index is None:
         batch_index = torch.arange(len(batch_nodes)).to(batch_nodes.device).repeat_interleave(batch_nodes) 
     max_num_nodes = int(batch_nodes.max())

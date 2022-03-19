@@ -3,10 +3,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import dgl.function as fn
-from models.encoders.encoders import OGB_NodeEncoder, OGB_EdgeEncoder
+from models.encoder.ogb_encoder import OGB_NodeEncoder, OGB_EdgeEncoder
 from dgl.nn.pytorch.glob import AvgPooling, SumPooling, MaxPooling
 
-from models.norms.norms import Norms
+from models.norm.gnn_norm import GNN_Norm
 
 class GINConvLayer(nn.Module):
     def __init__(self, embed_dim, aggregator_type='sum', norm_type='bn',
@@ -15,7 +15,7 @@ class GINConvLayer(nn.Module):
 
         # MLP for node updating in GIN convolution
         self.mlp_project_in = nn.Linear(embed_dim, 2 * embed_dim)
-        self.mlp_hidden_norm = Norms(norm_type, 2 * embed_dim)
+        self.mlp_hidden_norm = GNN_Norm(norm_type, 2 * embed_dim)
         self.mlp_project_out = nn.Linear(2 * embed_dim, embed_dim)
 
         if aggregator_type == 'sum':
@@ -62,7 +62,7 @@ class GIN(nn.Module):
         for i in range(num_layer-1):
             self.bond_layers.append(OGB_EdgeEncoder(dataset_name, embed_dim))
             self.conv_layers.append(GINConvLayer(embed_dim, norm_type=norm_type))
-            self.norm_layers.append(Norms(norm_type, embed_dim))
+            self.norm_layers.append(GNN_Norm(norm_type, embed_dim))
         # output layer
         self.predict = nn.Linear(embed_dim, output_dim)   
 

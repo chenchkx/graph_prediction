@@ -2,7 +2,7 @@
 import math
 from torch.optim.lr_scheduler import LambdaLR
 
-class LR_Schedulers(LambdaLR):
+class LR_Scheduler(LambdaLR):
     def __init__(self, optimizer, total_steps, warmup_type, 
                  warmup_steps=50, step_size=50, gamma=0.5, init_rate=0.1, last_epoch=-1):
         self.optimizer = optimizer
@@ -13,7 +13,7 @@ class LR_Schedulers(LambdaLR):
         self.gamma = gamma
         self.init_rate = init_rate
         self.last_epoch = last_epoch
-        super(LR_Schedulers, self).__init__(optimizer, self.lr_lambda, last_epoch=last_epoch)
+        super(LR_Scheduler, self).__init__(optimizer, self.lr_lambda, last_epoch=last_epoch)
 
     def lr_warmup(self, step):
         # lr_rate = float(step) / float(max(1, self.warmup_steps))

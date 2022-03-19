@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from dgl.ops import segment
-from utils.utils_practice import repeat_tensor_interleave
+from utils.utils_practice import *
 
 class XXX_Norm2(nn.BatchNorm1d):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
@@ -24,10 +24,8 @@ class XXX_Norm2(nn.BatchNorm1d):
         batch_num_nodes = graph.batch_num_nodes()      
         mean = segment.segment_reduce(batch_num_nodes, tensor, reducer='mean')
         mean = repeat_tensor_interleave(mean, batch_num_nodes)
-        tensor = tensor - self.center_weight * mean        
-        # tensor = tensor - self.center_weight*tensor.mean(0, keepdim=False)
-        # tensor = torch.sign(tensor)*torch.pow(tensor.abs()+self.eps, 0.25)
-
+        tensor = tensor - self.center_weight * mean    
+        
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else (self.running_mean is None) and (self.running_var is None)
         if self.training and self.track_running_stats:

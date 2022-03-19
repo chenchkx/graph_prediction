@@ -11,7 +11,7 @@ from cmath import inf
 from sklearn import metrics 
 from ogb.graphproppred import Evaluator
 from torch.optim.lr_scheduler import LambdaLR
-from optims.schedulers.schedulers import LR_Schedulers
+from optims.scheduler.scheduler import LR_Scheduler
 
 cls_criterion = nn.BCEWithLogitsLoss()
 reg_criterion = nn.MSELoss()
@@ -184,7 +184,7 @@ class ModelOptLearning_OGB_HIV_Statistics:
         
     def optimizing(self):
         ### Learning Rate Schedulers
-        scheduler = LR_Schedulers(self.optimizer, self.args.epochs, self.args.lr_warmup_type)
+        scheduler = LR_Scheduler(self.optimizer, self.args.epochs, self.args.lr_warmup_type)
                  
         valid_best_cls = 0
         valid_best_reg = inf

@@ -70,7 +70,7 @@ logs_table = pd.read_excel(xlsx_path)
 logs_epochs = logs_table[metric_selected]
 plt.plot(range(len(logs_epochs)), logs_epochs, label='bn')
 
-## 
+# 
 args.norm_type = 'gn'
 args = args_(args)
 xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
