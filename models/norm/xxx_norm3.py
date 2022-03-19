@@ -18,24 +18,17 @@ class XXX_Norm3(nn.BatchNorm1d):
             self.register_parameter('bias', None)
 
         self.center_weight = nn.Parameter(torch.zeros(num_features))
+        self.var_scale_weight = nn.Parameter(torch.ones(num_features))
+        self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):
         # self.denegative_parameter()
-        batch_num_nodes = graph.batch_num_nodes()      
-        # tensor_max = segment.segment_reduce(batch_num_nodes, tensor, reducer='max')
-        # tensor_min = segment.segment_reduce(batch_num_nodes, tensor, reducer='min')
-        # tensor_max = repeat_tensor_interleave(tensor_max, batch_num_nodes)
-        # tensor_min = repeat_tensor_interleave(tensor_min, batch_num_nodes)
-
-        tensor_max = segment.segment_reduce(batch_num_nodes, tensor.abs(), reducer='max')
-        tensor_max = repeat_tensor_interleave(tensor_max, batch_num_nodes)
-
-        tensor = tensor/(tensor_max+self.eps)      
-        # tensor = tensor - self.center_weight*tensor.mean(0, keepdim=False)
-        # tensor = torch.sign(tensor)*torch.pow(tensor.abs()+self.eps, 0.25)
+        batch_num_nodes = graph.batch_num_nodes() 
+        
+        tensor = tensor - self.center_weight*tensor.mean(0, keepdim=False)
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
-        bn_training = True if self.training else (self.running_mean is None) and (self.running_var is None)
+        bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
         if self.training and self.track_running_stats:
             if self.num_batches_tracked is not None: 
                 self.num_batches_tracked = self.num_batches_tracked + 1  
@@ -46,14 +39,14 @@ class XXX_Norm3(nn.BatchNorm1d):
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-        # results_abs = results.abs()
-        # results_abs[results_abs>1] = torch.log(results_abs[results_abs>1])
-        # results = torch.sign(results)*results_abs
 
+        batch_var = torch.mean(torch.pow(results-results.mean(0, keepdim=False),2), dim=0)
+        scale_weight = torch.sigmoid(self.var_scale_weight*batch_var+self.var_scale_bias)
+        
         if self.affine:
-            results = self.weight*results + self.bias
+            results = self.weight*scale_weight*results + self.bias
         else:
-            results = results
+            results = scale_weight*results
         
         return results
 

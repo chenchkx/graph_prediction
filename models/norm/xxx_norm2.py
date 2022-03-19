@@ -21,13 +21,14 @@ class XXX_Norm2(nn.BatchNorm1d):
 
     def forward(self, graph, tensor):
         # self.denegative_parameter()
-        batch_num_nodes = graph.batch_num_nodes()      
-        mean = segment.segment_reduce(batch_num_nodes, tensor, reducer='mean')
-        mean = repeat_tensor_interleave(mean, batch_num_nodes)
-        tensor = tensor - self.center_weight * mean    
+        batch_num_nodes = graph.batch_num_nodes()  
+        batch_mean = tensor.mean(0, keepdim=False)    
+        graph_mean = segment.segment_reduce(batch_num_nodes, tensor, reducer='mean')
+        graph_mean = repeat_tensor_interleave(graph_mean, batch_num_nodes)
+        tensor = tensor - self.center_weight*(graph_mean-batch_mean)
         
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
-        bn_training = True if self.training else (self.running_mean is None) and (self.running_var is None)
+        bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
         if self.training and self.track_running_stats:
             if self.num_batches_tracked is not None: 
                 self.num_batches_tracked = self.num_batches_tracked + 1  

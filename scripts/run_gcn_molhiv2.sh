@@ -9,10 +9,12 @@ model='GCN'
 nlayer=4
 lr_warmup_type='None'
 epochs=350
+seed=0
+wd=0.0
 
-for lr in 1e-3 5e-4;do
-    for seed in 0;do
-       for wd in 0;do
+for lr in 1e-3;do
+    for activation in 'relu' 'None';do
+       for dropout in 0.5 0;do
 
         python main.py \
                --device $device \
@@ -20,7 +22,9 @@ for lr in 1e-3 5e-4;do
                --model $model \
                --epochs $epochs \
                --num_layer $nlayer \
-               --norm_type 'in' \
+               --norm_type 'None' \
+               --activation $activation \
+               --dropout $dropout \
                --lr_warmup_type $lr_warmup_type \
                --lr $lr \
                --seed $seed \

@@ -27,7 +27,7 @@ class XXX_Norm(nn.BatchNorm1d):
         # tensor = torch.sign(tensor)*torch.pow(tensor.abs()+self.eps, 0.25)
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
-        bn_training = True if self.training else (self.running_mean is None) and (self.running_var is None)
+        bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
         if self.training and self.track_running_stats:
             if self.num_batches_tracked is not None: 
                 self.num_batches_tracked = self.num_batches_tracked + 1  

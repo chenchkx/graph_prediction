@@ -51,7 +51,7 @@ def load_model(args):
     elif args.model == 'GIN':
         model = GIN(args.dataset, args.embed_dim, args.output_dim, args.num_layer, args.norm_type).to(args.device)
     print('- ' * 30)
-    print(f'{args.model} network with {args.norm_type} norm, {args.pool_type} pooling')
+    print(f'{args.model} with {args.pool_type} pool, {args.norm_type} norm, {args.activation} act, {args.dropout} dropout')
     print('- ' * 30)   
     return model
 

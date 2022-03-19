@@ -101,7 +101,7 @@ class GCN(nn.Module):
         self.predict = nn.Sequential(
             nn.Linear(embed_dim, embed_dim//2),
             nn.ReLU(),
-            nn.Dropout(p=dropout),
+            nn.Dropout(p=0.5),
             nn.Linear(embed_dim//2, output_dim)
         )   
         # self.predict = nn.Linear(embed_dim, output_dim)  
@@ -119,7 +119,7 @@ class GCN(nn.Module):
         self.norm_feature = []
         for layer in range(self.num_layer):
             x = h_n
-            # conv_layer
+            # conv_layer & norm layer
             h_n = self.conv_layers[layer](graphs, h_n, efeat)
             self.conv_feature.append(h_n)
             h_n = self.norm_layers[layer](graphs, h_n)
