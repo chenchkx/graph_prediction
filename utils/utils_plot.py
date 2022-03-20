@@ -6,22 +6,32 @@ import torch
 def load_logs():
     return 0
 
+def get_batchsize(args):
+    if args.dataset in ['ogbg-molmuv']:
+        return 512
+    elif args.dataset in ['ogbg-molhiv']:
+        return 256
+    elif args.dataset in ['ogbg-molpcba','ogbg-ppa']:
+        return 1024
+    else: 
+        return 128
 
 ### add new arguments
 def args_(args): 
-
+    args.batch_size = get_batchsize(args)
     args.identity = (f"{args.dataset}-"+
                      f"{args.model}-"+
                      f"{args.num_layer}-"+
                      f"{args.embed_dim}-"+
-                     f"{args.norm_type}-"+
                      f"{args.pool_type}-"+
-                     f"{args.batch_size}-"+
-                     f"{args.lr_warmup_type}-"+
-                     f"{args.lr}-"+
+                     f"{args.norm_type}-"+
+                     f"{args.activation}-"+
                      f"{args.dropout}-"+
+                     f"{args.lr_warmup_type}-"+
+                     f"{args.lr}-"+  
                      f"{args.weight_decay}-"+
                      f"{args.loss_type}-"+
+                     f"{args.batch_size}-"+
                      f"{args.seed}-"+
                      f"{args.runs}"
                      )
@@ -38,6 +48,8 @@ def args_(args):
     args.stas_imgs_dir = os.path.join(args.logs_stas_dir, 'imgs')
 
     return args
+
+
 
 def get_metric(args):
 

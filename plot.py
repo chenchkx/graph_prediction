@@ -11,7 +11,7 @@ dir_path = os.path.dirname(__file__)
 ### add arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--device", type=int, default=0)
-parser.add_argument("--datadir", type=str, default='/nfs4-p1/ckx/datasets/ogb/graph/')
+parser.add_argument("--datadir", type=str, default='datasets')
 parser.add_argument("--dataset", type=str, default='ogbg-molhiv')
 
 parser.add_argument("--model", type=str, default='GCN', choices='GIN, GCN')
@@ -19,15 +19,16 @@ parser.add_argument("--epochs", type=int, default=500)
 parser.add_argument("--epoch_slice", type=int, default=0)
 parser.add_argument("--num_layer", type=int, default=4)
 parser.add_argument("--embed_dim", type=int, default=128)
-parser.add_argument("--norm_type", type=str, default='None', choices=['None', 'bn', 'gn', 'mn'])
 parser.add_argument("--pool_type", type=str, default="mean", choices=['dke', 'sum', 'mean', 'max'])
-parser.add_argument("--batch_size", type=int, default=256)
+parser.add_argument("--norm_type", type=str, default='xn3', choices=['bn', 'gn', 'xn', 'xn2', 'xn3', 'xn4', 'None'])
+parser.add_argument("--activation", type=str, default='None', choices=['relu', 'None'])
+parser.add_argument("--dropout", type=float, default=0.0)
 parser.add_argument("--lr_warmup_type", type=str, default='None', choices=['step','cosine','linear','None'])
 parser.add_argument("--lr", type=float, default=1e-3)
-parser.add_argument("--dropout", type=float, default=0.5)
 parser.add_argument("--weight_decay", type=float, default=0.0)
-parser.add_argument("--loss_type", type=str, default='ogb', choices='ogb, bce, mce', 
+parser.add_argument("--loss_type", type=str, default='ogb', choices=['ogb', 'bce', 'mce'], 
                     help='ogb: the loss and metric are consistent with those in ogb paper')
+parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--runs", type=int, default=0, 
                     help='running times of the program')
@@ -44,7 +45,7 @@ if not os.path.exists(args.perf_imgs_dir):
     os.mkdir(args.perf_imgs_dir)
 
 
-curve_set = 'test'
+curve_set = 'train'
 curve_metric = 'loss1' # loss or metric
 if curve_metric != 'loss':
     curve_metric = get_metric(args)
@@ -55,12 +56,12 @@ metric_selected = (f"{curve_set}-"+ f"{curve_metric}")
 
 
 ### 
-# args.norm_type = 'None'
-# args = args_(args)
-# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-# logs_table = pd.read_excel(xlsx_path)
-# logs_epochs = logs_table[metric_selected]
-# plt.plot(range(len(logs_epochs)), logs_epochs, label='None')
+args.norm_type = 'None'
+args = args_(args)
+xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+logs_table = pd.read_excel(xlsx_path)
+logs_epochs = logs_table[metric_selected]
+plt.plot(range(len(logs_epochs)), logs_epochs, label='None')
 
 ## 
 args.norm_type = 'bn'
@@ -70,21 +71,13 @@ logs_table = pd.read_excel(xlsx_path)
 logs_epochs = logs_table[metric_selected]
 plt.plot(range(len(logs_epochs)), logs_epochs, label='bn')
 
-# 
-args.norm_type = 'gn'
-args = args_(args)
-xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-logs_table = pd.read_excel(xlsx_path)
-logs_epochs = logs_table[metric_selected]
-plt.plot(range(len(logs_epochs)), logs_epochs, label='gn')
-
-# ### 
-# args.norm_type = 'in'
+# # 
+# args.norm_type = 'gn'
 # args = args_(args)
 # xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
 # logs_table = pd.read_excel(xlsx_path)
 # logs_epochs = logs_table[metric_selected]
-# plt.plot(range(len(logs_epochs)), logs_epochs, label='in')
+# plt.plot(range(len(logs_epochs)), logs_epochs, label='gn')
 
 
 ## 
@@ -112,8 +105,15 @@ logs_table = pd.read_excel(xlsx_path)
 logs_epochs = logs_table[metric_selected]
 plt.plot(range(len(logs_epochs)), logs_epochs, label='xn3')
 
+# args.norm_type = 'xn4'
+# args = args_(args)
+# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+# logs_table = pd.read_excel(xlsx_path)
+# logs_epochs = logs_table[metric_selected]
+# plt.plot(range(len(logs_epochs)), logs_epochs, label='xn4')
 
-args.norm_type = 'mix_'
+
+args.norm_type = 'mix'
 args = args_(args)
 plt.legend()
 plt.show()
