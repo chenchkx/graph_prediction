@@ -13,10 +13,13 @@ from models.norm.xxx_norm5 import XXX_Norm5
 from models.norm.xxx_norm6 import XXX_Norm6
 from models.norm.xxx_norm7 import XXX_Norm7
 from models.norm.xxx_norm8 import XXX_Norm8
+from models.norm.xxx_norm9 import XXX_Norm9
+from models.norm.xxx_norm10 import XXX_Norm10
+from models.norm.xxx_norm11 import XXX_Norm11
 class GNN_Norm(nn.Module):
     def __init__(self, norm_type = 'bn', embed_dim=300, print_info=None):
         super(GNN_Norm, self).__init__()
-        assert norm_type in ['bn', 'gn', 'in', 'xn', 'xn2', 'xn3', 'xn4', 'xn5', 'xn6', 'xn7', 'xn8','None']
+
         self.norm_type = norm_type
         self.norm = None
         if norm_type == 'bn':
@@ -40,7 +43,14 @@ class GNN_Norm(nn.Module):
         elif norm_type == 'xn7':
             self.norm = XXX_Norm7(embed_dim)
         elif norm_type == 'xn8':
-            self.norm = XXX_Norm8(embed_dim)    
+            self.norm = XXX_Norm8(embed_dim)   
+        elif norm_type == 'xn9':
+            self.norm = XXX_Norm9(embed_dim) 
+        elif norm_type == 'xn10':
+            self.norm = XXX_Norm10(embed_dim)     
+        elif norm_type == 'xn11':
+            self.norm = XXX_Norm11(embed_dim)   
+            
     def forward(self, graphs, tensor):
 
         if self.norm_type == 'None':

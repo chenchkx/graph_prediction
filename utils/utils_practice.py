@@ -9,7 +9,7 @@ def repeat_tensor_interleave(tensor, batch_nodes, batch_index=None, reproduce=Tr
     if reproduce:
         return tensor[batch_index]
     else:
-        # torch.repeat_interleave() for 2-D tensor makes random seed fail, the result is not reproducible.
+        # torch.repeat_interleave() for 2D tensor makes random seed fail, the result is not reproducible.
         return torch.repeat_interleave(tensor, batch_nodes, dim=0, output_size=torch.sum(batch_nodes))        
 
 def batch_tensor_trace(batch_tensor):
