@@ -4,12 +4,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from dgl.ops import segment
-from utils.utils_practice import repeat_tensor_interleave
+from utils.utils_practice import *
 
-class XXX_Norm(nn.BatchNorm1d):
+class XXX_Norm2(nn.BatchNorm1d):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
                  track_running_stats=True):
-        super(XXX_Norm, self).__init__(num_features, eps, momentum, affine, track_running_stats)
+        super(XXX_Norm2, self).__init__(num_features, eps, momentum, affine, track_running_stats)
         if self.affine:
             self.weight = nn.Parameter(torch.ones(num_features))
             self.bias = nn.Parameter(torch.zeros(num_features))
@@ -18,14 +18,15 @@ class XXX_Norm(nn.BatchNorm1d):
             self.register_parameter('bias', None)
 
         self.center_weight = nn.Parameter(torch.zeros(num_features))
-        self.latent_energy = nn.Parameter(torch.zeros(num_features))
-        self.graph_project_weight = nn.Parameter(torch.zeros(num_features))
-        self.graph_project_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):
         # self.denegative_parameter()
+        batch_num_nodes = graph.batch_num_nodes()  
+        batch_mean = tensor.mean(0, keepdim=False)    
+        graph_mean = segment.segment_reduce(batch_num_nodes, tensor, reducer='mean')
+        graph_mean = repeat_tensor_interleave(graph_mean, batch_num_nodes)
+        tensor = tensor - self.center_weight*(graph_mean-batch_mean)
         
-        tensor = tensor + self.center_weight*tensor.mean(0, keepdim=False)
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
         if self.training and self.track_running_stats:
@@ -38,10 +39,9 @@ class XXX_Norm(nn.BatchNorm1d):
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-        # results = torch.sigmoid(self.latent_energy)*results
-
-        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
-        results = results + repeat_tensor_interleave(self.graph_project_weight*graph_mean+self.graph_project_bias, graph.batch_num_nodes())
+        # results_abs = results.abs()
+        # results_abs[results_abs>1] = torch.log(results_abs[results_abs>1])
+        # results = torch.sign(results)*results_abs
 
         if self.affine:
             results = self.weight*results + self.bias

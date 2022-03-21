@@ -18,35 +18,20 @@ class XXX_Norm3(nn.BatchNorm1d):
             self.register_parameter('bias', None)
 
         self.center_weight = nn.Parameter(torch.zeros(num_features))
-        self.var_scale_weight = nn.Parameter(torch.ones(num_features))
-        self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
+        self.latent_energy = nn.Parameter(torch.zeros(num_features))
+        self.graph_project_weight = nn.Parameter(torch.zeros(num_features))
+        self.graph_project_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):
         # self.denegative_parameter()
-        batch_num_nodes = graph.batch_num_nodes() 
         
-        tensor = tensor - self.center_weight*tensor.mean(0, keepdim=False)
+        tensor = tensor + self.center_weight*tensor.mean(0, keepdim=False)
+        results = torch.sigmoid(self.latent_energy)*tensor/(tensor.std(0, keepdim=False)+self.eps)
 
-        exponential_average_factor = 0.0 if self.momentum is None else self.momentum
-        bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
-        if self.training and self.track_running_stats:
-            if self.num_batches_tracked is not None: 
-                self.num_batches_tracked = self.num_batches_tracked + 1  
-                if self.momentum is None:  
-                    exponential_average_factor = 1.0 / float(self.num_batches_tracked)
-                else: 
-                    exponential_average_factor = self.momentum
-        results = F.batch_norm(
-                    tensor, self.running_mean, self.running_var, None, None,
-                    bn_training, exponential_average_factor, self.eps)
-
-        batch_var = torch.mean(torch.pow(results-results.mean(0, keepdim=False),2), dim=0)
-        scale_weight = torch.sigmoid(self.var_scale_weight*batch_var+self.var_scale_bias)
-        
         if self.affine:
-            results = self.weight*scale_weight*results + self.bias
+            results = self.weight*results + self.bias
         else:
-            results = scale_weight*results
+            results = results
         
         return results
 

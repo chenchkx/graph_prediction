@@ -18,16 +18,15 @@ class XXX_Norm4(nn.BatchNorm1d):
             self.register_parameter('bias', None)
 
         self.center_weight = nn.Parameter(torch.zeros(num_features))
-        self.var_scale_weight = nn.Parameter(torch.ones(num_features))
-        self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
+        self.latent_energy = nn.Parameter(torch.ones(num_features))
+        self.graph_project_weight = nn.Parameter(torch.zeros(num_features))
+        self.graph_project_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):
         # self.denegative_parameter()
-        batch_num_nodes = graph.batch_num_nodes()  
-        batch_mean = tensor.mean(0, keepdim=False)    
-        graph_mean = segment.segment_reduce(batch_num_nodes, tensor, reducer='mean')
-        graph_mean = repeat_tensor_interleave(graph_mean, batch_num_nodes)
-        tensor = tensor - self.center_weight*(graph_mean-batch_mean)
+        
+        tensor = tensor + self.center_weight*tensor.mean(0, keepdim=False)
+        tensor = self.latent_energy*tensor/(tensor.std(0, keepdim=False)+self.eps)
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
@@ -42,14 +41,13 @@ class XXX_Norm4(nn.BatchNorm1d):
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
 
+        # graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
+        # results = results + repeat_tensor_interleave(self.graph_project_weight*graph_mean+self.graph_project_bias, graph.batch_num_nodes())
 
-        graph_var = segment.segment_reduce(batch_num_nodes, torch.pow(results-results.mean(0, keepdim=False),2), reducer='mean')
-        scale_weight = repeat_tensor_interleave(torch.sigmoid(self.var_scale_weight*graph_var+self.var_scale_bias), batch_num_nodes)
-        
         if self.affine:
-            results = self.weight*scale_weight*results + self.bias
+            results = self.weight*results + self.bias
         else:
-            results = scale_weight*results
+            results = results
         
         return results
 

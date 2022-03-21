@@ -13,24 +13,24 @@ seed=0
 wd=0.0
 
 for lr in 1e-3;do
-    for activation in 'relu' 'None';do
-       for dropout in 0.5 0;do
+for activation in 'relu';do
+for dropout in 0.5;do
 
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --epochs $epochs \
-               --num_layer $nlayer \
-               --norm_type 'bn' \
-               --activation $activation \
-               --dropout $dropout \
-               --lr_warmup_type $lr_warmup_type \
-               --lr $lr \
-               --seed $seed \
-               --weight_decay $wd
+    python main.py \
+            --device $device \
+            --dataset $dataset \
+            --model $model \
+            --epochs $epochs \
+            --num_layer $nlayer \
+            --norm_type 'xn' \
+            --activation $activation \
+            --dropout $dropout \
+            --lr_warmup_type $lr_warmup_type \
+            --lr $lr \
+            --seed $seed \
+            --weight_decay $wd
 
-       done
-    done
+done
+done
 done
 

@@ -3,8 +3,8 @@
 set -e
 
 
-device=0
-dataset='ogbg-molhiv'
+device=3
+dataset='ogbg-molmuv'
 model='GCN'
 nlayer=4
 lr_warmup_type='None'
@@ -22,7 +22,7 @@ for dropout in 0.5;do
             --model $model \
             --epochs $epochs \
             --num_layer $nlayer \
-            --norm_type 'xn5' \
+            --norm_type 'xn3' \
             --activation $activation \
             --dropout $dropout \
             --lr_warmup_type $lr_warmup_type \

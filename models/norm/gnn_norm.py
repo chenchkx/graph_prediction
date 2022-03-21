@@ -10,12 +10,12 @@ from models.norm.xxx_norm2 import XXX_Norm2
 from models.norm.xxx_norm3 import XXX_Norm3
 from models.norm.xxx_norm4 import XXX_Norm4
 from models.norm.xxx_norm5 import XXX_Norm5
-from models.norm.xxx_norm6 import XXX_Norm6
-from models.norm.xxx_norm7 import XXX_Norm7
-from models.norm.xxx_norm8 import XXX_Norm8
-from models.norm.xxx_norm9 import XXX_Norm9
-from models.norm.xxx_norm10 import XXX_Norm10
-from models.norm.xxx_norm11 import XXX_Norm11
+# from models.norm.xxx_norm6 import XXX_Norm6
+# from models.norm.xxx_norm7 import XXX_Norm7
+# from models.norm.xxx_norm8 import XXX_Norm8
+# from models.norm.xxx_norm9 import XXX_Norm9
+# from models.norm.xxx_norm10 import XXX_Norm10
+# from models.norm.xxx_norm11 import XXX_Norm11
 class GNN_Norm(nn.Module):
     def __init__(self, norm_type = 'bn', embed_dim=300, print_info=None):
         super(GNN_Norm, self).__init__()
@@ -38,18 +38,18 @@ class GNN_Norm(nn.Module):
             self.norm = XXX_Norm4(embed_dim)
         elif norm_type == 'xn5':
             self.norm = XXX_Norm5(embed_dim)
-        elif norm_type == 'xn6':
-            self.norm = XXX_Norm6(embed_dim)
-        elif norm_type == 'xn7':
-            self.norm = XXX_Norm7(embed_dim)
-        elif norm_type == 'xn8':
-            self.norm = XXX_Norm8(embed_dim)   
-        elif norm_type == 'xn9':
-            self.norm = XXX_Norm9(embed_dim) 
-        elif norm_type == 'xn10':
-            self.norm = XXX_Norm10(embed_dim)     
-        elif norm_type == 'xn11':
-            self.norm = XXX_Norm11(embed_dim)   
+        # elif norm_type == 'xn6':
+        #     self.norm = XXX_Norm6(embed_dim)
+        # elif norm_type == 'xn7':
+        #     self.norm = XXX_Norm7(embed_dim)
+        # elif norm_type == 'xn8':
+        #     self.norm = XXX_Norm8(embed_dim)   
+        # elif norm_type == 'xn9':
+        #     self.norm = XXX_Norm9(embed_dim) 
+        # elif norm_type == 'xn10':
+        #     self.norm = XXX_Norm10(embed_dim)     
+        # elif norm_type == 'xn11':
+        #     self.norm = XXX_Norm11(embed_dim)   
             
     def forward(self, graphs, tensor):
 

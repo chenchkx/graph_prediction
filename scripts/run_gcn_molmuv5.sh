@@ -3,8 +3,8 @@
 set -e
 
 
-device=0
-dataset='ogbg-molhiv'
+device=3
+dataset='ogbg-molmuv'
 model='GCN'
 nlayer=4
 lr_warmup_type='None'
