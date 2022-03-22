@@ -4,7 +4,7 @@ set -e
 
 
 device=1
-dataset='ogbg-molhiv'
+dataset='ogbg-molbbbp'
 model='GCN'
 epochs=500
 nlayer=4

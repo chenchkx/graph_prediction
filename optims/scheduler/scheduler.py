@@ -4,7 +4,7 @@ from torch.optim.lr_scheduler import LambdaLR
 
 class LR_Scheduler(LambdaLR):
     def __init__(self, optimizer, total_steps, warmup_type, 
-                 warmup_steps=50, step_size=50, gamma=0.5, init_rate=0.1, last_epoch=-1):
+                 warmup_steps=50, step_size=50, gamma=0.5, init_rate=0.0, last_epoch=-1):
         self.optimizer = optimizer
         self.total_steps = total_steps
         self.warmup_type = warmup_type
@@ -36,6 +36,7 @@ class LR_Scheduler(LambdaLR):
         if step < self.warmup_steps:
             return self.lr_warmup(step)
         return self.lr_decay(step)
+        
         # if 'cosine' in self.warmup_type:
         #     if step < self.warmup_steps:
         #         return self.lr_warmup(step, self.warmup_steps)
