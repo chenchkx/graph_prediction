@@ -6,7 +6,7 @@ set -e
 device=0
 dataset='ogbg-molbbbp'
 model='GCN'
-epochs=500
+epochs=350
 nlayer=4
 norm_type='bn'
 activation='relu'

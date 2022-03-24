@@ -6,10 +6,10 @@ import torch.nn.functional as F
 from dgl.ops import segment
 from utils.utils_practice import repeat_tensor_interleave
 
-class XXX_Norm(nn.BatchNorm1d):
+class XXX_Norm6(nn.BatchNorm1d):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
                  track_running_stats=True):
-        super(XXX_Norm, self).__init__(num_features, eps, momentum, affine, track_running_stats)
+        super(XXX_Norm6, self).__init__(num_features, eps, momentum, affine, track_running_stats)
         if self.affine:
             self.weight = nn.Parameter(torch.ones(num_features))
             self.bias = nn.Parameter(torch.zeros(num_features))
@@ -18,7 +18,7 @@ class XXX_Norm(nn.BatchNorm1d):
             self.register_parameter('bias', None)
 
         self.latent_weight = nn.Parameter(torch.zeros(num_features))
-        self.latent_energy = nn.Parameter(torch.ones(num_features))
+        self.latent_energy = nn.Parameter(torch.zeros(num_features))
         self.scale_weight = nn.Parameter(torch.zeros(num_features))
         self.scale_bias = nn.Parameter(torch.zeros(num_features))
 
@@ -38,11 +38,11 @@ class XXX_Norm(nn.BatchNorm1d):
         results = F.batch_norm(
                     tensor_latent, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-        # results = self.latent_energy*results
+        results = torch.sigmoid(self.latent_energy)*results   
 
         graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
         graph_tune = repeat_tensor_interleave(self.scale_weight*graph_mean+self.scale_bias, graph.batch_num_nodes())
-        results = results + graph_tune
+        results = results + F.relu(graph_tune)
 
         if self.affine:
             results = self.weight*results + self.bias

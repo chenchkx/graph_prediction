@@ -25,24 +25,28 @@ class XXX_Norm3(nn.BatchNorm1d):
     def forward(self, graph, tensor):
         # self.denegative_parameter()
         
-        tensor_latent = tensor + self.latent_weight*tensor.mean(0, keepdim=False)
-        exponential_average_factor = 0.0 if self.momentum is None else self.momentum
-        bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
-        if self.training and self.track_running_stats:
-            if self.num_batches_tracked is not None: 
-                self.num_batches_tracked = self.num_batches_tracked + 1  
-                if self.momentum is None:  
-                    exponential_average_factor = 1.0 / float(self.num_batches_tracked)
-                else: 
-                    exponential_average_factor = self.momentum
-        results = F.batch_norm(
-                    tensor_latent, self.running_mean, self.running_var, None, None,
-                    bn_training, exponential_average_factor, self.eps)
-        results = torch.exp(self.latent_energy)*results
+        x = tensor + self.latent_weight*tensor.mean(0, keepdim=False)
+        if self.training: #训练模型
+            #数据是二维的情况下，可以这么处理，其他维的时候不是这样的，但原理都一样。
+            mean_bn = x.mean(0, keepdim=True).squeeze(0) #相当于x.mean(0, keepdim=False)
+            var_bn = x.var(0, keepdim=True).squeeze(0) #相当于x.var(0, keepdim=False)
+ 
+            if self.momentum is not None:
+                self.running_mean.mul_(1 - self.momentum)
+                self.running_mean.add_((self.momentum) * mean_bn.data)
+                self.running_var.mul_(1 - self.momentum)
+                self.running_var.add_((self.momentum) * var_bn.data)
+            else:  #直接取平均,以下是公式变形，即 m_new = (m_old*n + new_value)/(n+1)
+                self.running_mean = self.running_mean+(mean_bn.data-self.running_mean)/(self.num_batches_tracked+1)
+                self.running_var = self.running_var+(var_bn.data-self.running_var)/(self.num_batches_tracked+1)
+            self.num_batches_tracked += 1
+        else: #eval模式
+            # mean_bn = torch.autograd.Variable(self.running_mean)
+            # var_bn = torch.autograd.Variable(self.running_var)
+            mean_bn = self.running_mean
+            var_bn = self.running_var
 
-        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
-        graph_tune = repeat_tensor_interleave(torch.tanh(self.scale_weight)*graph_mean+self.scale_bias, graph.batch_num_nodes())
-        results = results + graph_tune
+        results = (x - mean_bn) / torch.sqrt(var_bn + self.eps)
 
         if self.affine:
             results = self.weight*results + self.bias

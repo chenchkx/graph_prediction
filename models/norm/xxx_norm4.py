@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from dgl.ops import segment
 from utils.utils_practice import repeat_tensor_interleave
+from dgl.backend.backend import repeat
 
 class XXX_Norm4(nn.BatchNorm1d):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
@@ -24,8 +25,10 @@ class XXX_Norm4(nn.BatchNorm1d):
 
     def forward(self, graph, tensor):
         # self.denegative_parameter()
-        
-        tensor_latent = tensor + self.latent_weight*tensor.mean(0, keepdim=False)
+
+        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
+        graph_mean = repeat_tensor_interleave(self.scale_weight*graph_mean+self.scale_bias, graph.batch_num_nodes())      
+        tensor_latent = tensor + graph_mean
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
         if self.training and self.track_running_stats:
@@ -38,11 +41,11 @@ class XXX_Norm4(nn.BatchNorm1d):
         results = F.batch_norm(
                     tensor_latent, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-        results = torch.sigmoid(self.latent_energy)*results
+        # results = torch.sigmoid(self.latent_energy)*results
 
-        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
-        graph_tune = repeat_tensor_interleave(torch.tanh(self.scale_weight)*graph_mean+self.scale_bias, graph.batch_num_nodes())
-        results = results + graph_tune
+        # graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
+        # graph_tune = repeat_tensor_interleave(self.scale_weight*graph_mean+self.scale_bias, graph.batch_num_nodes())
+        # results = results + torch.tanh(graph_tune)
 
         if self.affine:
             results = self.weight*results + self.bias
@@ -50,5 +53,6 @@ class XXX_Norm4(nn.BatchNorm1d):
             results = results
         
         return results
+
 
    

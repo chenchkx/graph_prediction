@@ -3,8 +3,8 @@
 set -e
 
 
-device=3
-dataset='ogbg-molmuv'
+device=1
+dataset='ogbg-molhiv'
 model='GCN'
 epochs=500
 nlayer=4
