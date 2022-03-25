@@ -16,7 +16,7 @@ lr_warmup_type='cosine'
 
 for lr in 1e-3;do
 for seed in 0;do
-for wd in 1e-4;do
+for wd in 0 1e-4;do
 
     python main.py \
             --device $device \

@@ -25,7 +25,9 @@ class XXX_Norm5(nn.BatchNorm1d):
     def forward(self, graph, tensor):
         # self.denegative_parameter()
         
-        tensor_latent = tensor + self.latent_weight*tensor.mean(0, keepdim=False)
+        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
+        tensor = tensor + repeat_tensor_interleave(self.scale_weight*graph_mean, graph.batch_num_nodes())    
+
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
         if self.training and self.track_running_stats:
@@ -36,13 +38,12 @@ class XXX_Norm5(nn.BatchNorm1d):
                 else: 
                     exponential_average_factor = self.momentum
         results = F.batch_norm(
-                    tensor_latent, self.running_mean, self.running_var, None, None,
+                    tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-        results = torch.exp(self.latent_energy)*results   
 
-        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
-        graph_tune = repeat_tensor_interleave(self.scale_weight*graph_mean+self.scale_bias, graph.batch_num_nodes())
-        results = results + F.relu(graph_tune)
+        l2_norm = segment.segment_reduce(graph.batch_num_nodes(),torch.pow(results,2),reducer='sum')
+        l2_norm = repeat_tensor_interleave((l2_norm+self.eps).sqrt(),graph.batch_num_nodes())
+        results = results/l2_norm
 
         if self.affine:
             results = self.weight*results + self.bias
