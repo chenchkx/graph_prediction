@@ -40,16 +40,18 @@ class XXX_Norm5(nn.BatchNorm1d):
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
+        # results = torch.sigmoid(self.latent_energy)*results
 
-        l2_norm = segment.segment_reduce(graph.batch_num_nodes(),torch.pow(results,2),reducer='sum')
-        l2_norm = repeat_tensor_interleave((l2_norm+self.eps).sqrt(),graph.batch_num_nodes())
-        results = results/l2_norm
+        # graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
+        # graph_tune = repeat_tensor_interleave(self.scale_weight*graph_mean+self.scale_bias, graph.batch_num_nodes())
+        # results = results + torch.tanh(graph_tune)
+
+        scale_factor = torch.sigmoid(self.latent_energy*torch.sqrt((results.var(0, keepdim=False)+self.eps)/(tensor.var(0, keepdim=False)+self.eps)))
 
         if self.affine:
-            results = self.weight*results + self.bias
+            results = self.weight*scale_factor*results + self.bias
         else:
             results = results
         
         return results
-
    

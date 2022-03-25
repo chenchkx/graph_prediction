@@ -17,7 +17,7 @@ wd=0.0
 
 for lr in 1e-3;do
 for seed in 0;do
-for wd in 0.0;do
+for wd in 0.0 1e-4;do
 
     python main.py \
             --device $device \

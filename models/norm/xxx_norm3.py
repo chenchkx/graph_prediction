@@ -23,14 +23,8 @@ class XXX_Norm3(nn.BatchNorm1d):
         self.scale_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):
-        # self.denegative_parameter()
-        
         graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
         tensor = tensor + repeat_tensor_interleave(self.scale_weight*graph_mean, graph.batch_num_nodes())    
-
-        l2_norm = segment.segment_reduce(graph.batch_num_nodes(),torch.pow(tensor,2),reducer='sum')
-        l2_norm = repeat_tensor_interleave((l2_norm+self.eps).sqrt(),graph.batch_num_nodes())
-        tensor = tensor + self.latent_weight*tensor/l2_norm
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
@@ -45,6 +39,9 @@ class XXX_Norm3(nn.BatchNorm1d):
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
 
+        tensor_var = tensor.var(0, keepdim=False)
+        tensor_var[tensor_var<self.eps] = self.eps
+        results = torch.sigmoid(self.latent_energy*results.var(0, keepdim=False)/tensor_var)*results
 
         if self.affine:
             results = self.weight*results + self.bias
@@ -52,5 +49,3 @@ class XXX_Norm3(nn.BatchNorm1d):
             results = results
         
         return results
-
-   
