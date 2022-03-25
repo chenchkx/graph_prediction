@@ -4,33 +4,14 @@ import os
 import time
 import torch
 import pandas as pd
-import matplotlib.pyplot as plt
 import torch.nn as nn
 from tqdm import tqdm
 from cmath import inf
-from sklearn import metrics 
 from ogb.graphproppred import Evaluator
-from torch.optim.lr_scheduler import LambdaLR
 from optims.scheduler.scheduler import LR_Scheduler
 
 cls_criterion = nn.BCEWithLogitsLoss()
 reg_criterion = nn.MSELoss()
-
-class LinearSchedule(LambdaLR):
-    """ Linear warmup and then linear decay.
-        Linearly increases learning rate from 0 to 1 over `warmup_steps` training steps.
-        Linearly decreases learning rate from 1. to 0. over remaining `t_total - warmup_steps` steps.
-    """
-    def __init__(self, optimizer, t_total, warmup_steps=0, last_epoch=-1):
-        self.warmup_steps = warmup_steps
-        self.t_total = t_total
-        super(LinearSchedule, self).__init__(optimizer, self.lr_lambda, last_epoch=last_epoch)
-
-    def lr_lambda(self, step):
-        if step < self.warmup_steps:
-            return float(step) / float(max(1, self.warmup_steps))
-        return max(0.0, float(self.t_total - step) / float(max(1.0, self.t_total - self.warmup_steps)))
-
 
 # class of model optimizing & learning (ModelOptLearning)
 class ModelOptLearning_OGB_HIV_Statistics:

@@ -3,48 +3,37 @@
 set -e
 
 
-device=1
+device=0
 dataset='ogbg-mollipo'
 model='GCN'
-bs=64
+epochs=350
+nlayer=4
+norm_type='xn'
+activation='relu'
+dropout=0.5
+lr_warmup_type='cosine'
+wd=0.0
 
-for lr in 1e-3 1e-4;do
-    for seed in 1;do
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --norm_type 'None' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed 
 
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --norm_type 'bn' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed
+for lr in 1e-3;do
+for seed in 0;do
+for wd in 0.0 1e-4;do
 
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --norm_type 'gn' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed 
-               
-        python main.py \
-               --device $device \
-               --dataset $dataset \
-               --model $model \
-               --norm_type 'mn' \
-               --batch_size $bs \
-               --lr $lr \
-               --seed $seed 
-    done
+    python main.py \
+            --device $device \
+            --dataset $dataset \
+            --model $model \
+            --epochs $epochs \
+            --num_layer $nlayer \
+            --norm_type $norm_type \
+            --activation $activation \
+            --dropout $dropout \
+            --lr_warmup_type $lr_warmup_type \
+            --lr $lr \
+            --seed $seed \
+            --weight_decay $wd
+
+done
+done
 done
 

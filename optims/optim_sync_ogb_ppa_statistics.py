@@ -4,29 +4,12 @@ import os
 import time
 import torch
 import pandas as pd
-import matplotlib.pyplot as plt
-import torch.nn as nn
 from tqdm import tqdm
 from cmath import inf
 from ogb.graphproppred import Evaluator
-from torch.optim.lr_scheduler import LambdaLR
+from optims.scheduler.scheduler import LR_Scheduler
 
 multicls_criterion = torch.nn.CrossEntropyLoss()
-
-class LinearSchedule(LambdaLR):
-    """ Linear warmup and then linear decay.
-        Linearly increases learning rate from 0 to 1 over `warmup_steps` training steps.
-        Linearly decreases learning rate from 1. to 0. over remaining `t_total - warmup_steps` steps.
-    """
-    def __init__(self, optimizer, t_total, warmup_steps=0, last_epoch=-1):
-        self.warmup_steps = warmup_steps
-        self.t_total = t_total
-        super(LinearSchedule, self).__init__(optimizer, self.lr_lambda, last_epoch=last_epoch)
-
-    def lr_lambda(self, step):
-        if step < self.warmup_steps:
-            return float(step) / float(max(1, self.warmup_steps))
-        return max(0.0, float(self.t_total - step) / float(max(1.0, self.t_total - self.warmup_steps)))
 
 
 # class of model optimizing & learning (ModelOptLearning)
@@ -178,8 +161,8 @@ class ModelOptLearning_OGB_PPA_Statistics:
         return stas_table.append(pd.DataFrame([table_data], columns=table_head), ignore_index=True)
         
     def optimizing(self):
-        scheduler = LinearSchedule(self.optimizer, self.args.epochs)
-        # scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=50, gamma=0.5)
+        scheduler = LR_Scheduler(self.optimizer, self.args.epochs, self.args.lr_warmup_type)
+
         valid_best_cls = 0
         valid_best_reg = inf
         logs_table = pd.DataFrame()
@@ -237,18 +220,18 @@ class ModelOptLearning_OGB_PPA_Statistics:
                 torch.save(self.model.state_dict(), dict_file_path)
 
             # get the statistics information of current epoch 
-            train_stas_table = self.statistics(self.model, self.train_loader, train_stas_table)
-            valid_stas_table = self.statistics(self.model, self.valid_loader, valid_stas_table)
-            test_stas_table = self.statistics(self.model, self.test_loader, test_stas_table)
+            # train_stas_table = self.statistics(self.model, self.train_loader, train_stas_table)
+            # valid_stas_table = self.statistics(self.model, self.valid_loader, valid_stas_table)
+            # test_stas_table = self.statistics(self.model, self.test_loader, test_stas_table)
 
             scheduler.step()
         
         if not os.path.exists(self.args.perf_xlsx_dir):
             os.mkdir(self.args.perf_xlsx_dir)
         logs_table.to_excel(os.path.join(self.args.perf_xlsx_dir, self.args.identity+'.xlsx'))
-        if not os.path.exists(self.args.stas_xlsx_dir):
-            os.mkdir(self.args.stas_xlsx_dir)
-        train_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-train.xlsx'))
-        valid_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-valid.xlsx'))
-        test_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-test.xlsx'))
+        # if not os.path.exists(self.args.stas_xlsx_dir):
+        #     os.mkdir(self.args.stas_xlsx_dir)
+        # train_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-train.xlsx'))
+        # valid_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-valid.xlsx'))
+        # test_stas_table.to_excel(os.path.join(self.args.stas_xlsx_dir, self.args.identity+'-test.xlsx'))
 

@@ -40,8 +40,7 @@ class XXX_Norm2(nn.BatchNorm1d):
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
 
-        tensor_var = tensor.var(0, keepdim=False)
-        tensor_var[tensor_var<self.eps] = self.eps
+        tensor_var = tensor.var(0, keepdim=False) + self.eps
         results = torch.sigmoid(self.latent_energy*results.var(0, keepdim=False)/tensor_var)*results
 
         

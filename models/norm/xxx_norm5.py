@@ -23,7 +23,6 @@ class XXX_Norm5(nn.BatchNorm1d):
         self.scale_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):
-        # self.denegative_parameter()
         
         graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
         tensor = tensor + repeat_tensor_interleave(self.scale_weight*graph_mean, graph.batch_num_nodes())    
@@ -40,16 +39,12 @@ class XXX_Norm5(nn.BatchNorm1d):
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-        # results = torch.sigmoid(self.latent_energy)*results
 
-        # graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
-        # graph_tune = repeat_tensor_interleave(self.scale_weight*graph_mean+self.scale_bias, graph.batch_num_nodes())
-        # results = results + torch.tanh(graph_tune)
-
-        scale_factor = torch.sigmoid(self.latent_energy*torch.sqrt((results.var(0, keepdim=False)+self.eps)/(tensor.var(0, keepdim=False)+self.eps)))
+        tensor_var = tensor.var(0, keepdim=False) + self.eps
+        results = torch.sigmoid(self.latent_energy*results.var(0, keepdim=False)/tensor_var)*results + self.scale_bias
 
         if self.affine:
-            results = self.weight*scale_factor*results + self.bias
+            results = self.weight*results + self.bias
         else:
             results = results
         

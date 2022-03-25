@@ -36,7 +36,7 @@ if __name__ =='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--device", type=int, default=0)
     parser.add_argument("--datadir", type=str, default='datasets')
-    parser.add_argument("--dataset", type=str, default='ogbg-molbbbp')
+    parser.add_argument("--dataset", type=str, default='ogbg-ppa')
 
     parser.add_argument("--model", type=str, default='GCN', choices='GIN, GCN')
     parser.add_argument("--epochs", type=int, default=500)
