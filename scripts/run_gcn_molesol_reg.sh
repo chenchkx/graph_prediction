@@ -3,21 +3,20 @@
 set -e
 
 
-device=0
-dataset='ogbg-molmuv'
+device=1
+dataset='ogbg-molesol'
 model='GCN'
 epochs=500
 nlayer=4
-norm_type='bn'
+norm_type='xn'
 activation='relu'
 dropout=0.5
 lr_warmup_type='cosine'
-wd=0.0
 
 
 for lr in 1e-3;do
 for seed in 0;do
-for wd in 0.0;do
+for wd in 0;do
 
     python main.py \
             --device $device \
@@ -38,26 +37,10 @@ done
 done
 
 
-#!/usr/bin/env bash
-
-set -e
-
-
-device=0
-dataset='ogbg-molhiv'
-model='GCN'
-epochs=500
-nlayer=4
-norm_type='None'
-activation='relu'
-dropout=0.5
-lr_warmup_type='cosine'
-wd=0.0
-
-
+norm_type='xn1'
 for lr in 1e-3;do
 for seed in 0;do
-for wd in 0.0;do
+for wd in 0;do
 
     python main.py \
             --device $device \

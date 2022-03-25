@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from ogb.graphproppred.dataset_dgl import DglGraphPropPredDataset, collate_dgl
 
+from optims.optim_acc_with_mce import ModelOptLearning_MCE
 from optims.optim_sync_ogb_mol import ModelOptLearning_OGB_HIV
 from optims.optim_sync_ogb_mol_statistics import ModelOptLearning_OGB_HIV_Statistics
 from optims.optim_sync_ogb_ppa_statistics import ModelOptLearning_OGB_PPA_Statistics
@@ -61,13 +62,23 @@ def ModelOptLoading(model, optimizer,
                     train_loader, valid_loader, test_loader,
                     args):
     if 'mol' in args.dataset:
-        modelOptm = ModelOptLearning_OGB_HIV_Statistics(
-                                model=model, 
-                                optimizer=optimizer,
-                                train_loader=train_loader,
-                                valid_loader=valid_loader,
-                                test_loader=test_loader,
-                                args=args)
+        if 'ogb' in args.loss_type:
+            modelOptm = ModelOptLearning_OGB_HIV_Statistics(
+                                    model=model, 
+                                    optimizer=optimizer,
+                                    train_loader=train_loader,
+                                    valid_loader=valid_loader,
+                                    test_loader=test_loader,
+                                    args=args)
+        elif 'mce' in args.loss_type:
+            modelOptm = ModelOptLearning_MCE(
+                                    model=model, 
+                                    optimizer=optimizer,
+                                    train_loader=train_loader,
+                                    valid_loader=valid_loader,
+                                    test_loader=test_loader,
+                                    args=args)     
+
     elif 'ppa' in args.dataset:
         modelOptm = ModelOptLearning_OGB_PPA_Statistics(
                                 model=model, 
@@ -85,10 +96,13 @@ def reset_batch_size(num_graphs):
     else:
         return 512 if num_graphs < 100000 else 1024
 
-def get_ogb_output_dim(dataset, dataset_name):
-    if 'mol' in dataset_name:
-        return dataset.num_tasks
-    elif 'ppa' in dataset_name:
+def get_ogb_output_dim(dataset, args):
+    if 'mol' in args.dataset:
+        if 'mce' in args.loss_type:
+            return int(dataset.num_classes)
+        elif 'ogb' in args.loss_type:
+            return int(dataset.num_tasks)
+    elif 'ppa' in args.dataset:
         return int(dataset.num_classes)
 
 ### add new arguments
@@ -97,7 +111,7 @@ def args_(args, dataset):
     args.task_type = dataset.task_type
     args.eval_metric = dataset.eval_metric    
     args.batch_size = reset_batch_size(len(dataset))
-    args.output_dim = get_ogb_output_dim(dataset, args.dataset)
+    args.output_dim = get_ogb_output_dim(dataset, args)
     args.identity = (f"{args.dataset}-"+
                      f"{args.model}-"+
                      f"{args.num_layer}-"+

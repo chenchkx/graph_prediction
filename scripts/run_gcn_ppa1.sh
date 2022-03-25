@@ -4,19 +4,19 @@ set -e
 
 
 device=2
-dataset='ogbg-molhiv'
+dataset='ogbg-ppa'
 model='GCN'
-epochs=350
+epochs=400
 nlayer=4
-norm_type='xn2'
+norm_type='bn'
 activation='relu'
 dropout=0.5
-lr_warmup_type='cosine'
+lr_warmup_type='step'
 
 
 for lr in 1e-3;do
 for seed in 0;do
-for wd in 0 1e-4;do
+for wd in 0;do
 
     python main.py \
             --device $device \
@@ -35,4 +35,3 @@ for wd in 0 1e-4;do
 done
 done
 done
-

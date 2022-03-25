@@ -4,6 +4,7 @@ import torch.nn as nn
 
 from models.norm.graph_norm import GraphNorm
 from models.norm.local_bn1d import LocalBN1d
+from models.norm.local_bn1d_falseaffine import LocalBN1d_FalseAffine
 from models.norm.instance_norm import InstanceNorm
 from models.norm.xxx_norm import XXX_Norm
 from models.norm.xxx_norm1 import XXX_Norm1
@@ -25,6 +26,8 @@ class GNN_Norm(nn.Module):
         self.norm = None
         if norm_type == 'bn':
             self.norm = LocalBN1d(embed_dim)
+        if norm_type == 'bnf':
+            self.norm = LocalBN1d_FalseAffine(embed_dim)
         elif norm_type == 'gn':
             self.norm = GraphNorm(embed_dim)
         elif norm_type == 'in':
@@ -43,16 +46,7 @@ class GNN_Norm(nn.Module):
             self.norm = XXX_Norm5(embed_dim)
         elif norm_type == 'xn6':
             self.norm = XXX_Norm6(embed_dim)
-        # elif norm_type == 'xn7':
-        #     self.norm = XXX_Norm7(embed_dim)
-        # elif norm_type == 'xn8':
-        #     self.norm = XXX_Norm8(embed_dim)   
-        # elif norm_type == 'xn9':
-        #     self.norm = XXX_Norm9(embed_dim) 
-        # elif norm_type == 'xn10':
-        #     self.norm = XXX_Norm10(embed_dim)     
-        # elif norm_type == 'xn11':
-        #     self.norm = XXX_Norm11(embed_dim)   
+
             
     def forward(self, graphs, tensor):
 

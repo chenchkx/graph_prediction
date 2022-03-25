@@ -4,20 +4,19 @@ set -e
 
 
 device=3
-dataset='ogbg-molmuv'
+dataset='ogbg-ppa'
 model='GCN'
-epochs=500
+epochs=400
 nlayer=4
-norm_type='xn6'
+norm_type='xn1'
 activation='relu'
 dropout=0.5
-lr_warmup_type='cosine'
-wd=0.0
+lr_warmup_type='step'
 
 
 for lr in 1e-3;do
 for seed in 0;do
-for wd in 0.0;do
+for wd in 0;do
 
     python main.py \
             --device $device \
@@ -36,4 +35,3 @@ for wd in 0.0;do
 done
 done
 done
-

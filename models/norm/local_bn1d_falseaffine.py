@@ -4,10 +4,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class LocalBN1d(nn.BatchNorm1d):
-    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
+class LocalBN1d_FalseAffine(nn.BatchNorm1d):
+    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=False,
                  track_running_stats=True):
-        super(LocalBN1d, self).__init__(num_features, eps, momentum, affine, track_running_stats)
+        super(LocalBN1d_FalseAffine, self).__init__(num_features, eps, momentum, affine, track_running_stats)
         if self.affine:
             self.weight = nn.Parameter(torch.ones(num_features))
             self.bias = nn.Parameter(torch.zeros(num_features))

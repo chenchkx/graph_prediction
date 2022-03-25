@@ -13,10 +13,9 @@ activation='relu'
 dropout=0.5
 lr_warmup_type='cosine'
 
-
 for lr in 1e-3;do
 for seed in 0;do
-for wd in 1e-4;do
+for wd in 0.0;do
 
     python main.py \
             --device $device \
@@ -37,25 +36,10 @@ done
 done
 
 
-#!/usr/bin/env bash
-
-set -e
-
-
-device=0
-dataset='ogbg-molhiv'
-model='GCN'
-epochs=500
-nlayer=4
-norm_type='None'
-activation='relu'
-dropout=0.5
-lr_warmup_type='cosine'
-
-
+norm_type='bnf'
 for lr in 1e-3;do
 for seed in 0;do
-for wd in 1e-4;do
+for wd in 0.0;do
 
     python main.py \
             --device $device \
@@ -74,3 +58,4 @@ for wd in 1e-4;do
 done
 done
 done
+
