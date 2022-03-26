@@ -17,15 +17,14 @@ class XXX_Norm3(nn.BatchNorm1d):
             self.register_parameter('weight', None)
             self.register_parameter('bias', None)
 
-        self.latent_weight = nn.Parameter(torch.zeros(num_features))
-        self.latent_energy = nn.Parameter(torch.zeros(num_features))
-        self.scale_weight = nn.Parameter(torch.zeros(num_features))
-        self.scale_bias = nn.Parameter(torch.zeros(num_features))
+        self.fea_scale_weight = nn.Parameter(torch.zeros(num_features))
+        self.var_scale_weight = nn.Parameter(torch.ones(num_features))
+        self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):
-        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
-        tensor = tensor + repeat_tensor_interleave(self.scale_weight*graph_mean, graph.batch_num_nodes())    
-
+        
+        tensor = tensor+self.fea_scale_weight*tensor.mean(0, keepdim=False)
+        
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
         if self.training and self.track_running_stats:
@@ -39,12 +38,7 @@ class XXX_Norm3(nn.BatchNorm1d):
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
 
-        tensor_var = tensor.var(0, keepdim=False) + self.eps
-        results = torch.sigmoid(self.latent_energy*results.var(0, keepdim=False)/tensor_var)*results
+        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results-self.running_mean, reducer='mean')
+        results = results - self.running_mean + repeat_tensor_interleave(self.var_scale_weight*graph_mean, graph.batch_num_nodes())    
 
-        if self.affine:
-            results = self.weight*results + self.bias
-        else:
-            results = results
-        
         return results

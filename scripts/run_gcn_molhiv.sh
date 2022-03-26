@@ -3,9 +3,9 @@
 set -e
 
 
-device=1
+device=2
 dataset='ogbg-molhiv'
-model='GCN'
+model='GCNN'
 epochs=500
 nlayer=4
 norm_type='xn'
