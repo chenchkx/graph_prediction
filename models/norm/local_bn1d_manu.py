@@ -3,13 +3,11 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from dgl.ops import segment
-from utils.utils_practice import repeat_tensor_interleave
 
-class XXX_Norm3(nn.BatchNorm1d):
+class LocalBN1d_Manu(nn.BatchNorm1d):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
                  track_running_stats=True):
-        super(XXX_Norm3, self).__init__(num_features, eps, momentum, affine, track_running_stats)
+        super(LocalBN1d_Manu, self).__init__(num_features, eps, momentum, affine, track_running_stats)
         if self.affine:
             self.weight = nn.Parameter(torch.ones(num_features))
             self.bias = nn.Parameter(torch.zeros(num_features))
@@ -17,22 +15,14 @@ class XXX_Norm3(nn.BatchNorm1d):
             self.register_parameter('weight', None)
             self.register_parameter('bias', None)
 
-        self.fea_scale_weight = nn.Parameter(torch.zeros(num_features))
-        self.var_scale_weight = nn.Parameter(torch.ones(num_features))
-        self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
-
     def forward(self, graph, tensor):  
 
-        # graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
-        # tensor = tensor + repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())    
-        # tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
 
         if self.training: #训练模型
             #数据是二维的情况下，可以这么处理，其他维的时候不是这样的，但原理都一样。
             mean_bn = tensor.mean(0, keepdim=True).squeeze(0) #相当于x.mean(0, keepdim=False)
-            tensor_diff = tensor - mean_bn
-            tensor_diff[tensor_diff<0] = 0
-            var_bn = tensor_diff.mean(0, keepdim=True).squeeze(0)
+            var_bn = tensor.var(0, keepdim=True).squeeze(0) #相当于x.var(0, keepdim=False)
+ 
             if self.momentum is not None:
                 self.running_mean.mul_(1 - self.momentum)
                 self.running_mean.add_((self.momentum) * mean_bn.data)
@@ -46,11 +36,11 @@ class XXX_Norm3(nn.BatchNorm1d):
             mean_bn = torch.autograd.Variable(self.running_mean)
             var_bn = torch.autograd.Variable(self.running_var)
             
-        results = (tensor - mean_bn) / torch.sqrt(var_bn + self.eps)
+        x_normalized = (tensor - mean_bn) / torch.sqrt(var_bn + self.eps)
 
         if self.affine:
-            results = self.weight*results + self.bias
+            results = self.weight*x_normalized + self.bias
         else:
-            results = results
+            results = x_normalized
 
         return results

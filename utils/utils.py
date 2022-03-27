@@ -14,7 +14,7 @@ from optims.optim_sync_ogb_mol_statistics import ModelOptLearning_OGB_HIV_Statis
 from optims.optim_sync_ogb_ppa_statistics import ModelOptLearning_OGB_PPA_Statistics
 from models.GIN import GIN
 from models.GCN import GCN
-from models.GCNN import GCNN
+
 nfs_dataset_path1 = '/mnt/nfs/ckx/datasets/ogb/graph/'
 nfs_dataset_path2 = '/nfs4-p1/ckx/datasets/ogb/graph/'
 
@@ -48,10 +48,6 @@ def load_data(args):
 def load_model(args):
     if args.model == 'GCN':
         model = GCN(args.dataset, args.embed_dim, args.output_dim, args.num_layer,
-                    norm_type=args.norm_type, pooling_type=args.pool_type,
-                    activation=args.activation, dropout=args.dropout).to(args.device)
-    elif args.model == 'GCNN':
-        model = GCNN(args.dataset, args.embed_dim, args.output_dim, args.num_layer,
                     norm_type=args.norm_type, pooling_type=args.pool_type,
                     activation=args.activation, dropout=args.dropout).to(args.device)
     elif args.model == 'GIN':

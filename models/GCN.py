@@ -1,7 +1,6 @@
 
 import torch 
 import torch.nn as nn
-import torch.nn.functional as F
 import dgl.function as fn
 from models.encoder.ogb_encoder import OGB_NodeEncoder, OGB_EdgeEncoder
 from models.norm.gnn_norm import GNN_Norm
@@ -52,34 +51,19 @@ class GCNConvLayer(nn.Module):
 
         self.project_node_feat = nn.Linear(embed_dim, embed_dim)
         self.project_edge_feat = OGB_EdgeEncoder(dataset_name, embed_dim)
-        self.project_residual =  nn.Embedding(1, embed_dim)
-
-
-    def get_degs_norm(self, graphs):
-        degs = (graphs.in_degrees().float() + 1).to(graphs.device)
-        norm = torch.pow(degs, -0.5).unsqueeze(-1) 
-        graphs.ndata['norm'] = norm
-        graphs.apply_edges(fn.u_mul_v('norm', 'norm', 'norm'))
-        norm = graphs.edata.pop('norm')
-
-        return degs, norm
+        
 
     def forward(self, graphs, nfeat, efeat):
         graphs = graphs.local_var()
-        degs, norm =self.get_degs_norm(graphs)
-        nfeat = self.project_node_feat(nfeat)
+        degs = (graphs.in_degrees().float() + 1).to(graphs.device)
         efeat = self.project_edge_feat(efeat)
 
-        graphs.ndata['feat'] = nfeat
-        graphs.apply_edges(fn.copy_u('feat', 'e'))
-        graphs.edata['e'] = norm * F.relu(graphs.edata['e'] + efeat)
-        graphs.update_all(fn.copy_e('e', 'm'), fn.sum('m', 'feat'))
+        graphs.ndata['h_n'] = nfeat
+        graphs.edata['h_e'] = efeat
+        graphs.update_all(fn.u_add_e('h_n', 'h_e', 'm'), fn.sum('m', 'neigh'))
 
-        residual_nfeat = nfeat + self.project_residual.weight
-        residual_nfeat = F.relu(residual_nfeat)
-        residual_nfeat = residual_nfeat * 1. / degs.view(-1, 1)
+        rst = self.project_node_feat((nfeat + graphs.ndata['neigh']) / degs.view(-1, 1))
 
-        rst = graphs.ndata['feat'] + residual_nfeat
         return rst
 
 
@@ -98,13 +82,13 @@ class GCN(nn.Module):
             self.conv_layers.append(GCNConvLayer(dataset_name, embed_dim))
             self.norm_layers.append(GNN_Norm(norm_type, embed_dim))
         # output layer
-        self.predict = nn.Sequential(
-            nn.Linear(embed_dim, embed_dim//2),
-            nn.ReLU(),
-            nn.Dropout(p=0.5),
-            nn.Linear(embed_dim//2, output_dim)
-        )   
-        # self.predict = nn.Linear(embed_dim, output_dim)  
+        # self.predict = nn.Sequential(
+        #     nn.Linear(embed_dim, embed_dim//2),
+        #     nn.ReLU(),
+        #     nn.Dropout(p=0.5),
+        #     nn.Linear(embed_dim//2, output_dim)
+        # )   
+        self.predict = nn.Linear(embed_dim, output_dim)  
         
         # other modules in GNN
         self.activation = LocalActivation(activation)

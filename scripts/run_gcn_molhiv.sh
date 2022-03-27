@@ -5,7 +5,7 @@ set -e
 
 device=2
 dataset='ogbg-molhiv'
-model='GCNN'
+model='GCN'
 epochs=500
 nlayer=4
 norm_type='xn'
@@ -14,7 +14,7 @@ dropout=0.5
 lr_warmup_type='cosine'
 
 
-for lr in 1e-3;do
+for lr in 1e-3 1e-4;do
 for seed in 0;do
 for wd in 0;do
 
@@ -37,8 +37,8 @@ done
 done
 
 
-norm_type='xn1'
-for lr in 1e-3;do
+norm_type='xn4'
+for lr in 1e-3 1e-4;do
 for seed in 0;do
 for wd in 0;do
 

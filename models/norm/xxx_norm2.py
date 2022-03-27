@@ -21,23 +21,35 @@ class XXX_Norm2(nn.BatchNorm1d):
         self.var_scale_weight = nn.Parameter(torch.ones(num_features))
         self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
 
-    def forward(self, graph, tensor):
-        
+    def forward(self, graph, tensor):  
 
-        tensor = tensor+self.fea_scale_weight*tensor.mean(0, keepdim=False)
-        
-        exponential_average_factor = 0.0 if self.momentum is None else self.momentum
-        bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
-        if self.training and self.track_running_stats:
-            if self.num_batches_tracked is not None: 
-                self.num_batches_tracked = self.num_batches_tracked + 1  
-                if self.momentum is None:  
-                    exponential_average_factor = 1.0 / float(self.num_batches_tracked)
-                else: 
-                    exponential_average_factor = self.momentum
-        results = F.batch_norm(
-                    tensor, self.running_mean, self.running_var, None, None,
-                    bn_training, exponential_average_factor, self.eps)
+        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
+        tensor = tensor + repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())    
+        # tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
 
+        if self.training: #训练模型
+            #数据是二维的情况下，可以这么处理，其他维的时候不是这样的，但原理都一样。
+            mean_bn = tensor.mean(0, keepdim=True).squeeze(0) #相当于x.mean(0, keepdim=False)
+            tensor_diff = torch.abs(tensor - mean_bn)
+            var_bn = tensor_diff.mean(0, keepdim=True).squeeze(0)
+            if self.momentum is not None:
+                self.running_mean.mul_(1 - self.momentum)
+                self.running_mean.add_((self.momentum) * mean_bn.data)
+                self.running_var.mul_(1 - self.momentum)
+                self.running_var.add_((self.momentum) * var_bn.data)
+            else:  #直接取平均,以下是公式变形，即 m_new = (m_old*n + new_value)/(n+1)
+                self.running_mean = self.running_mean+(mean_bn.data-self.running_mean)/(self.num_batches_tracked+1)
+                self.running_var = self.running_var+(var_bn.data-self.running_var)/(self.num_batches_tracked+1)
+            self.num_batches_tracked += 1
+        else: #eval模式
+            mean_bn = torch.autograd.Variable(self.running_mean)
+            var_bn = torch.autograd.Variable(self.running_var)
+            
+        results = (tensor - mean_bn) / torch.sqrt(var_bn + self.eps)
+
+        if self.affine:
+            results = self.weight*results + self.bias
+        else:
+            results = results
 
         return results
