@@ -23,9 +23,9 @@ class XXX_Norm(nn.BatchNorm1d):
 
     def forward(self, graph, tensor):  
 
-        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
-        tensor = tensor + repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())    
-        # tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
+        # graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
+        # tensor = tensor + repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())    
+        tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
 
         if self.training: #训练模型
             #数据是二维的情况下，可以这么处理，其他维的时候不是这样的，但原理都一样。
@@ -45,6 +45,7 @@ class XXX_Norm(nn.BatchNorm1d):
             var_bn = torch.autograd.Variable(self.running_var)
             
         results = (tensor - mean_bn) / torch.sqrt(var_bn + self.eps)
+
 
         if self.affine:
             results = self.weight*results + self.bias

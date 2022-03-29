@@ -18,12 +18,14 @@ class XXX_Norm2(nn.BatchNorm1d):
             self.register_parameter('bias', None)
 
         self.fea_scale_weight = nn.Parameter(torch.zeros(num_features))
-        self.var_scale_weight = nn.Parameter(torch.zeros(num_features))
+        self.var_scale_weight = nn.Parameter(torch.ones(num_features))
         self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):  
 
-        tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
+        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
+        tensor = tensor + repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())      
+        # tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
 
         if self.training: #训练模型
             #数据是二维的情况下，可以这么处理，其他维的时候不是这样的，但原理都一样。
@@ -44,9 +46,6 @@ class XXX_Norm2(nn.BatchNorm1d):
             var_bn = torch.autograd.Variable(self.running_var)
             
         results = (tensor - mean_bn) / torch.sqrt(var_bn + self.eps)
-
-        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
-        results = results + repeat_tensor_interleave(self.var_scale_weight*graph_mean, graph.batch_num_nodes())  
 
         if self.affine:
             results = self.weight*results + self.bias

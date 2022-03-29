@@ -3,18 +3,18 @@
 set -e
 
 
-device=1
+device=2
 dataset='ogbg-molhiv'
 model='GCN'
 epochs=500
-nlayer=4
+nlayer=10
 norm_type='gn'
 activation='relu'
 dropout=0.5
 lr_warmup_type='cosine'
 
 
-for lr in 1e-4;do
+for lr in 1e-3 1e-4;do
 for seed in 0;do
 for wd in 0.0;do
 
@@ -37,23 +37,9 @@ done
 done
 
 
-#!/usr/bin/env bash
 
-set -e
-
-
-device=1
-dataset='ogbg-molhiv'
-model='GCN'
-epochs=500
-nlayer=4
 norm_type='in'
-activation='relu'
-dropout=0.5
-lr_warmup_type='cosine'
-
-
-for lr in 1e-4;do
+for lr in 1e-3 1e-4;do
 for seed in 0;do
 for wd in 0.0;do
 
