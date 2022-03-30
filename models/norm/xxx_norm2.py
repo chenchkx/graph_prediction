@@ -23,12 +23,15 @@ class XXX_Norm2(nn.BatchNorm1d):
 
     def forward(self, graph, tensor):  
 
-        tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
+        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
+        tensor = tensor + repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())    
+        # tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
 
         if self.training: #训练模型
             #数据是二维的情况下，可以这么处理，其他维的时候不是这样的，但原理都一样。
             mean_bn = tensor.mean(0, keepdim=True).squeeze(0) #相当于x.mean(0, keepdim=False)
-            tensor_diff = torch.abs(tensor - mean_bn)
+            tensor_diff = tensor - mean_bn
+            tensor_diff[tensor_diff<0] = 0
             var_bn = tensor_diff.mean(0, keepdim=True).squeeze(0)
             if self.momentum is not None:
                 self.running_mean.mul_(1 - self.momentum)
@@ -41,12 +44,8 @@ class XXX_Norm2(nn.BatchNorm1d):
             self.num_batches_tracked += 1
         else: #eval模式
             mean_bn = torch.autograd.Variable(self.running_mean)
-            var_bn = torch.autograd.Variable(self.running_var)
-            
-        results = (tensor - mean_bn) / torch.sqrt(var_bn + self.eps)
-
-        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
-        results = results + repeat_tensor_interleave(self.var_scale_weight*graph_mean, graph.batch_num_nodes())  
+            var_bn = torch.autograd.Variable(self.running_var)    
+        results = (tensor - mean_bn)/(var_bn + self.eps)
 
         if self.affine:
             results = self.weight*results + self.bias
@@ -54,3 +53,4 @@ class XXX_Norm2(nn.BatchNorm1d):
             results = results
 
         return results
+
