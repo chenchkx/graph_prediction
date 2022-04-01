@@ -109,8 +109,9 @@ class GCN(nn.Module):
             h_n = self.norm_layers[layer](graphs, h_n)
             self.norm_feature.append(h_n)
             # activation
-            h_n = self.dropout(self.activation(h_n))
-            # h_n = h_n + x                   
+            h_n = self.activation(h_n)
+            # h_n = h_n + x  
+            h_n = self.dropout(h_n)                     
         # pooling & prediction
         g_n = self.pooling(graphs, h_n)
         pre = self.predict(g_n)
