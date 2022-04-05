@@ -16,23 +16,22 @@ class XXX_Norm4(nn.BatchNorm1d):
         else: 
             self.register_parameter('weight', None)
             self.register_parameter('bias', None)
-        self.fea_scale_weight = nn.Parameter(torch.zeros(num_features))
+            
+        self.fea_scale_weight = nn.Parameter(torch.ones(num_features))
         self.var_scale_weight = nn.Parameter(torch.zeros(num_features))
-        self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
+        self.var_scale_bias = nn.Parameter(torch.ones(num_features))
 
     def forward(self, graph, tensor):  
 
-        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
-        tensor = tensor + repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())    
+        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor*graph.ndata['instance_energies'].unsqueeze(1), reducer='sum')
+        tensor = tensor - repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())     
         # tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
 
-        if self.training: #训练模型
-            #数据是二维的情况下，可以这么处理，其他维的时候不是这样的，但原理都一样。
-            mean_bn = tensor.mean(0, keepdim=True).squeeze(0) #相当于x.mean(0, keepdim=False)
+        if self.training: 
+            mean_bn = tensor.mean(0, keepdim=False)
             tensor_diff = tensor - mean_bn
             tensor_diff[tensor_diff<0] = 0
-            tensor_diff[tensor_diff<1] = torch.pow(tensor_diff[tensor_diff<1],2)
-            var_bn = tensor_diff.mean(0, keepdim=True).squeeze(0)
+            var_bn = tensor_diff.mean(0, keepdim=False)
             if self.momentum is not None:
                 self.running_mean.mul_(1 - self.momentum)
                 self.running_mean.add_((self.momentum) * mean_bn.data)
@@ -46,6 +45,8 @@ class XXX_Norm4(nn.BatchNorm1d):
             mean_bn = torch.autograd.Variable(self.running_mean)
             var_bn = torch.autograd.Variable(self.running_var)    
         results = (tensor - mean_bn)/(var_bn + self.eps)
+
+        results = results*torch.sigmoid(self.var_scale_weight*var_bn+self.var_scale_bias)
 
         if self.affine:
             results = self.weight*results + self.bias

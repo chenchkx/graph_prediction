@@ -17,14 +17,14 @@ parser.add_argument("--dataset", type=str, default='ogbg-molhiv')
 parser.add_argument("--model", type=str, default='GCN', choices='GIN, GCN')
 parser.add_argument("--epochs", type=int, default=500)
 parser.add_argument("--epoch_slice", type=int, default=0)
-parser.add_argument("--num_layer", type=int, default=10)
+parser.add_argument("--num_layer", type=int, default=4)
 parser.add_argument("--embed_dim", type=int, default=128)
 parser.add_argument("--pool_type", type=str, default="mean", choices=['dke', 'sum', 'mean', 'max'])
 parser.add_argument("--norm_type", type=str, default='xn3', choices=['bn', 'gn', 'xn', 'xn2', 'xn3', 'xn4', 'None'])
 parser.add_argument("--activation", type=str, default='relu', choices=['relu', 'None'])
 parser.add_argument("--dropout", type=float, default=0.5)
 parser.add_argument("--lr_warmup_type", type=str, default='cosine', choices=['step','cosine','linear','None'])
-parser.add_argument("--lr", type=float, default=1e-4)
+parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--weight_decay", type=float, default=0.0)
 parser.add_argument("--loss_type", type=str, default='ogb', choices=['ogb', 'bce', 'mce'], 
                     help='ogb: the loss and metric are consistent with those in ogb paper')
@@ -123,30 +123,30 @@ logs_table = pd.read_excel(xlsx_path)
 logs_epochs = logs_table[metric_selected][0:args.epochs]
 plt.plot(range(len(logs_epochs)), logs_epochs, label='xn1')
 
-### 
-args.norm_type = 'xn2'
-args = args_(args)
-xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-logs_table = pd.read_excel(xlsx_path)
-logs_epochs = logs_table[metric_selected][0:args.epochs]
-plt.plot(range(len(logs_epochs)), logs_epochs, label='xn2')
+# ### 
+# args.norm_type = 'xn2'
+# args = args_(args)
+# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+# logs_table = pd.read_excel(xlsx_path)
+# logs_epochs = logs_table[metric_selected][0:args.epochs]
+# plt.plot(range(len(logs_epochs)), logs_epochs, label='xn2')
 
 
-### 
-args.norm_type = 'xn3'
-args = args_(args)
-xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-logs_table = pd.read_excel(xlsx_path)
-logs_epochs = logs_table[metric_selected][0:args.epochs]
-plt.plot(range(len(logs_epochs)), logs_epochs, label='xn3')
+# ### 
+# args.norm_type = 'xn3'
+# args = args_(args)
+# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+# logs_table = pd.read_excel(xlsx_path)
+# logs_epochs = logs_table[metric_selected][0:args.epochs]
+# plt.plot(range(len(logs_epochs)), logs_epochs, label='xn3')
 
 
-args.norm_type = 'xn4'
-args = args_(args)
-xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-logs_table = pd.read_excel(xlsx_path)
-logs_epochs = logs_table[metric_selected][0:args.epochs]
-plt.plot(range(len(logs_epochs)), logs_epochs, label='xn4')
+# args.norm_type = 'xn4'
+# args = args_(args)
+# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+# logs_table = pd.read_excel(xlsx_path)
+# logs_epochs = logs_table[metric_selected][0:args.epochs]
+# plt.plot(range(len(logs_epochs)), logs_epochs, label='xn4')
 
 
 

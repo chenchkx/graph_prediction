@@ -27,10 +27,9 @@ class XXX_Norm(nn.BatchNorm1d):
         tensor = tensor + repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())    
         # tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
 
-        if self.training: #训练模型
-            #数据是二维的情况下，可以这么处理，其他维的时候不是这样的，但原理都一样。
-            mean_bn = tensor.mean(0, keepdim=True).squeeze(0) #相当于x.mean(0, keepdim=False)
-            var_bn = tensor.var(0, keepdim=True).squeeze(0) #相当于x.var(0, keepdim=False)
+        if self.training: 
+            mean_bn = tensor.mean(0, keepdim=False)
+            var_bn = tensor.var(0, keepdim=False) 
             if self.momentum is not None:
                 self.running_mean.mul_(1 - self.momentum)
                 self.running_mean.add_((self.momentum) * mean_bn.data)
