@@ -9,10 +9,10 @@ simplefilter(action='ignore', category=FutureWarning)
 dir_path = os.path.dirname(__file__)
 
 def main(args):
-
-    dataset, train_loader, valid_loader, test_loader = load_data(args)
-    args = args_(args, dataset)
     set_seed(args)
+
+    dataset, train_loader, valid_loader, test_loader = load_process_dataset(args)
+    args = args_(args, dataset)
 
     model = load_model(args)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
@@ -44,7 +44,7 @@ if __name__ =='__main__':
     parser.add_argument("--num_layer", type=int, default=4)
     parser.add_argument("--embed_dim", type=int, default=128)
     parser.add_argument("--pool_type", type=str, default="mean", choices=['dke', 'sum', 'mean', 'max'])
-    parser.add_argument("--norm_type", type=str, default='xn4')
+    parser.add_argument("--norm_type", type=str, default='xn1')
     parser.add_argument("--activation", type=str, default='None', choices=['relu', 'None'])
     parser.add_argument("--dropout", type=float, default=0.5)
     parser.add_argument("--lr_warmup_type", type=str, default='None', choices=['step','cosine','linear','None'])
@@ -61,6 +61,7 @@ if __name__ =='__main__':
                         help="logs' files of the loss and performance")
     parser.add_argument("--logs_stas_dir", type=str, default=os.path.join(dir_path,'logs_stas'), 
                         help="statistics' files of the avg and std")
+    parser.add_argument("--instance_energy", action="store_true")
     parser.add_argument("--state_dict", action="store_true")
 
     args = parser.parse_args()

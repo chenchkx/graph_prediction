@@ -4,6 +4,7 @@ import torch
 import random
 import numpy as np
 import pandas as pd
+import networkx as nx
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from ogb.graphproppred.dataset_dgl import DglGraphPropPredDataset, collate_dgl
@@ -14,22 +15,56 @@ from optims.optim_sync_ogb_mol_statistics import ModelOptLearning_OGB_HIV_Statis
 from optims.optim_sync_ogb_ppa_statistics import ModelOptLearning_OGB_PPA_Statistics
 from models.GIN import GIN
 from models.GCN import GCN
-
 nfs_dataset_path1 = '/mnt/nfs/ckx/datasets/ogb/graph/'
 nfs_dataset_path2 = '/nfs4-p1/ckx/datasets/ogb/graph/'
 
-### load dataset 
-def load_data(args):    
+# add node instance engery
+def add_instance_engery(dataset):
+
+    for g in dataset:
+        row, col = g[0].edges()
+        num_of_nodes = g[0].num_nodes()
+        adj = torch.zeros(num_of_nodes, num_of_nodes)
+        for i in range(row.shape[0]):
+            adj[row[i]][col[i]]=1.0        
+        A_array = adj.detach().numpy()
+        G = nx.from_numpy_matrix(A_array)
+
+        instance_energies = torch.zeros(num_of_nodes)
+        for i in range(len(A_array)):
+            s_indexes = []
+            for j in range(len(A_array)):
+                s_indexes.append(i)
+                if(A_array[i][j]==1):
+                    s_indexes.append(j)      
+            subgraph_nodes = len(list(G.subgraph(s_indexes).nodes))
+            subgraph_edges = G.subgraph(s_indexes).number_of_edges() + subgraph_nodes
+            subgraph_nodes = subgraph_nodes + 1
+            instance_energy = subgraph_edges/(subgraph_nodes*(subgraph_nodes-1))
+            instance_energy = instance_energy*(subgraph_nodes**2)
+            
+            instance_energies[i] = instance_energy
+        instance_energies = instance_energies/instance_energies.sum()
+        g[0].ndata['instance_energies'] = instance_energies
+
+
+### load and preprocess dataset 
+def load_process_dataset(args):    
     # check nfs dataset path
     if os.path.exists(nfs_dataset_path1):
         args.datadir = nfs_dataset_path1
     elif os.path.exists(nfs_dataset_path2):
         args.datadir = nfs_dataset_path2
     dataset = DglGraphPropPredDataset(name=args.dataset, root=args.datadir)
+
     # preprocess the node features in ogbg-ppa dataset
     if 'ppa' in args.dataset:
         for g in dataset:
             g[0].ndata['feat'] = torch.zeros(g[0].num_nodes(), dtype=int)
+    # add node instance engery
+    if not args.instance_energy:
+        add_instance_engery(dataset)
+
     # split_idx for training, valid and test 
     split_idx = dataset.get_idx_split()
     train_loader = DataLoader(dataset[split_idx["train"]], batch_size=args.batch_size, shuffle=True, 
@@ -39,8 +74,11 @@ def load_data(args):
     test_loader = DataLoader(dataset[split_idx["test"]], batch_size=args.batch_size, shuffle=False, 
                               collate_fn=collate_dgl, num_workers=0)    
     print('- ' * 30)
-    print(f'{args.dataset} dataset loaded.')
-    print('- ' * 30)
+    if not args.instance_energy:
+        print(f'{args.dataset} dataset loaded, with instance energy. ')
+    else:
+        print(f'{args.dataset} dataset loaded, without instance energy. ')
+    print('- ' * 30)        
     return dataset, train_loader, valid_loader, test_loader
 
 
