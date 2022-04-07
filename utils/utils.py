@@ -18,8 +18,8 @@ from models.GCN import GCN
 nfs_dataset_path1 = '/mnt/nfs/ckx/datasets/ogb/graph/'
 nfs_dataset_path2 = '/nfs4-p1/ckx/datasets/ogb/graph/'
 
-# add node instance engery
-def add_instance_engery(dataset):
+# add node instance weight
+def add_node_weight(dataset):
 
     for g in dataset:
         row, col = g[0].edges()
@@ -30,7 +30,7 @@ def add_instance_engery(dataset):
         A_array = adj.detach().numpy()
         G = nx.from_numpy_matrix(A_array)
 
-        instance_energies = torch.zeros(num_of_nodes)
+        node_weight = torch.zeros(num_of_nodes)
         for i in range(len(A_array)):
             s_indexes = []
             for j in range(len(A_array)):
@@ -42,10 +42,10 @@ def add_instance_engery(dataset):
             subgraph_nodes = subgraph_nodes + 1
             instance_energy = subgraph_edges/(subgraph_nodes*(subgraph_nodes-1))
             instance_energy = instance_energy*(subgraph_nodes**2)
-            
-            instance_energies[i] = instance_energy
-        instance_energies = instance_energies/instance_energies.sum()
-        g[0].ndata['instance_energies'] = instance_energies
+            node_weight[i] = instance_energy
+
+        g[0].ndata['node_weight'] = node_weight
+        g[0].ndata['node_weight_normed'] = node_weight/node_weight.sum()
 
 
 ### load and preprocess dataset 
@@ -61,9 +61,9 @@ def load_process_dataset(args):
     if 'ppa' in args.dataset:
         for g in dataset:
             g[0].ndata['feat'] = torch.zeros(g[0].num_nodes(), dtype=int)
-    # add node instance engery
-    if not args.instance_energy:
-        add_instance_engery(dataset)
+    # add node instance weight
+    if not args.node_weight:
+        add_node_weight(dataset)
 
     # split_idx for training, valid and test 
     split_idx = dataset.get_idx_split()
@@ -74,7 +74,7 @@ def load_process_dataset(args):
     test_loader = DataLoader(dataset[split_idx["test"]], batch_size=args.batch_size, shuffle=False, 
                               collate_fn=collate_dgl, num_workers=0)    
     print('- ' * 30)
-    if not args.instance_energy:
+    if not args.node_weight:
         print(f'{args.dataset} dataset loaded, with instance energy. ')
     else:
         print(f'{args.dataset} dataset loaded, without instance energy. ')

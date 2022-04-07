@@ -17,21 +17,24 @@ class XXX_Norm4(nn.BatchNorm1d):
             self.register_parameter('weight', None)
             self.register_parameter('bias', None)
             
-        self.fea_scale_weight = nn.Parameter(torch.ones(num_features))
+        self.fea_scale_weight = nn.Parameter(torch.zeros(num_features))
         self.var_scale_weight = nn.Parameter(torch.zeros(num_features))
-        self.var_scale_bias = nn.Parameter(torch.ones(num_features))
+        self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):  
 
-        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor*graph.ndata['instance_energies'].unsqueeze(1), reducer='sum')
-        tensor = tensor - repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())     
-        # tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
-
+        # graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor*graph.ndata['node_weight_normed'].unsqueeze(1), reducer='sum')
+        # tensor = tensor - repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())   
+          
+        batch_node_weight = graph.ndata['node_weight']
+        batch_node_weight = (batch_node_weight/batch_node_weight.sum()).unsqueeze(1)
         if self.training: 
-            mean_bn = tensor.mean(0, keepdim=False)
+            mean_bn = torch.sum(batch_node_weight*tensor, 0, keepdim=False)
             tensor_diff = tensor - mean_bn
             tensor_diff[tensor_diff<0] = 0
-            var_bn = tensor_diff.mean(0, keepdim=False)
+            var_bn = torch.sum(batch_node_weight*tensor_diff, 0, keepdim=False)
+            var_bn = var_bn*tensor.shape[0]/(tensor.shape[0]-1)
+
             if self.momentum is not None:
                 self.running_mean.mul_(1 - self.momentum)
                 self.running_mean.add_((self.momentum) * mean_bn.data)
@@ -43,14 +46,13 @@ class XXX_Norm4(nn.BatchNorm1d):
             self.num_batches_tracked += 1
         else: #eval模式
             mean_bn = torch.autograd.Variable(self.running_mean)
-            var_bn = torch.autograd.Variable(self.running_var)    
-        results = (tensor - mean_bn)/(var_bn + self.eps)
+            var_bn = torch.autograd.Variable(self.running_var)       
+        results = (tensor - mean_bn) / (var_bn + self.eps)
 
-        results = results*torch.sigmoid(self.var_scale_weight*var_bn+self.var_scale_bias)
 
-        if self.affine:
-            results = self.weight*results + self.bias
-        else:
-            results = results
+        # if self.affine:
+        #     results = self.weight*results + self.bias
+        # else:
+        #     results = results
 
         return results

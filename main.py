@@ -61,7 +61,7 @@ if __name__ =='__main__':
                         help="logs' files of the loss and performance")
     parser.add_argument("--logs_stas_dir", type=str, default=os.path.join(dir_path,'logs_stas'), 
                         help="statistics' files of the avg and std")
-    parser.add_argument("--instance_energy", action="store_true")
+    parser.add_argument("--node_weight", action="store_true")
     parser.add_argument("--state_dict", action="store_true")
 
     args = parser.parse_args()

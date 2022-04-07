@@ -18,11 +18,9 @@ class LocalBN1d_Manu(nn.BatchNorm1d):
     def forward(self, graph, tensor):  
 
 
-        if self.training: #训练模型
-            #数据是二维的情况下，可以这么处理，其他维的时候不是这样的，但原理都一样。
-            mean_bn = tensor.mean(0, keepdim=True).squeeze(0) #相当于x.mean(0, keepdim=False)
-            var_bn = tensor.var(0, keepdim=True).squeeze(0) #相当于x.var(0, keepdim=False)
- 
+        if self.training: 
+            mean_bn = tensor.mean(0, keepdim=False) #相当于x.mean(0, keepdim=False)
+            var_bn = tensor.var(0, keepdim=False) #相当于x.var(0, keepdim=False)
             if self.momentum is not None:
                 self.running_mean.mul_(1 - self.momentum)
                 self.running_mean.add_((self.momentum) * mean_bn.data)
@@ -34,13 +32,12 @@ class LocalBN1d_Manu(nn.BatchNorm1d):
             self.num_batches_tracked += 1
         else: #eval模式
             mean_bn = torch.autograd.Variable(self.running_mean)
-            var_bn = torch.autograd.Variable(self.running_var)
-            
-        x_normalized = (tensor - mean_bn) / torch.sqrt(var_bn + self.eps)
+            var_bn = torch.autograd.Variable(self.running_var)       
+        results = (tensor - mean_bn) / torch.sqrt(var_bn + self.eps)
 
-        if self.affine:
-            results = self.weight*x_normalized + self.bias
-        else:
-            results = x_normalized
+        # if self.affine:
+        #     results = self.weight*results + self.bias
+        # else:
+        #     results = results
 
         return results
