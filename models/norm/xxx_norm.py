@@ -17,16 +17,14 @@ class XXX_Norm(nn.BatchNorm1d):
             self.register_parameter('weight', None)
             self.register_parameter('bias', None)
 
-
+        
     def forward(self, graph, tensor):  
 
-        batch_node_weight = graph.ndata['node_weight']
-        batch_node_weight = (batch_node_weight/batch_node_weight.sum()).unsqueeze(1)
-        if self.training: 
-            mean_bn = torch.sum(batch_node_weight*tensor, 0, keepdim=False)
-            var_bn = torch.sum(batch_node_weight*torch.pow(tensor-mean_bn, 2), 0, keepdim=False)
-            var_bn = var_bn*tensor.shape[0]/(tensor.shape[0]-1)
+        tensor = tensor*graph.ndata['snorm_n'].unsqueeze(1)
 
+        if self.training: 
+            mean_bn = tensor.mean(0, keepdim=False) #相当于x.mean(0, keepdim=False)
+            var_bn = tensor.var(0, keepdim=False) #相当于x.var(0, keepdim=False)
             if self.momentum is not None:
                 self.running_mean.mul_(1 - self.momentum)
                 self.running_mean.add_((self.momentum) * mean_bn.data)
@@ -41,11 +39,9 @@ class XXX_Norm(nn.BatchNorm1d):
             var_bn = torch.autograd.Variable(self.running_var)       
         results = (tensor - mean_bn) / torch.sqrt(var_bn + self.eps)
 
-
         # if self.affine:
         #     results = self.weight*results + self.bias
         # else:
         #     results = results
-
+    
         return results
-   

@@ -95,7 +95,6 @@ plt.plot(range(len(logs_epochs)), logs_epochs, label='bnm')
 # logs_epochs = logs_table[metric_selected][0:args.epochs]
 # plt.plot(range(len(logs_epochs)), logs_epochs, label='gn')
 
-
 # ###
 # args.norm_type = 'in'
 # args = args_(args)
@@ -106,39 +105,40 @@ plt.plot(range(len(logs_epochs)), logs_epochs, label='bnm')
 
 
 
-###
-args.norm_type = 'xn'
-args = args_(args)
-xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-logs_table = pd.read_excel(xlsx_path)
-logs_epochs = logs_table[metric_selected][0:args.epochs]
-plt.plot(range(len(logs_epochs)), logs_epochs, label='xn')
+# ###
+# args.norm_type = 'xn'
+# args = args_(args)
+# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+# logs_table = pd.read_excel(xlsx_path)
+# logs_epochs = logs_table[metric_selected][0:args.epochs]
+# plt.plot(range(len(logs_epochs)), logs_epochs, label='xn')
 
 
-###
-args.norm_type = 'xn1'
-args = args_(args)
-xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-logs_table = pd.read_excel(xlsx_path)
-logs_epochs = logs_table[metric_selected][0:args.epochs]
-plt.plot(range(len(logs_epochs)), logs_epochs, label='xn1')
+# ###
+# args.norm_type = 'xn1'
+# args = args_(args)
+# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+# logs_table = pd.read_excel(xlsx_path)
+# logs_epochs = logs_table[metric_selected][0:args.epochs]
+# plt.plot(range(len(logs_epochs)), logs_epochs, label='xn1')
+
+
+# ### 
+# args.norm_type = 'xn2'
+# args = args_(args)
+# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+# logs_table = pd.read_excel(xlsx_path)
+# logs_epochs = logs_table[metric_selected][0:args.epochs]
+# plt.plot(range(len(logs_epochs)), logs_epochs, label='xn2')
+
 
 ### 
-args.norm_type = 'xn2'
-args = args_(args)
-xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-logs_table = pd.read_excel(xlsx_path)
-logs_epochs = logs_table[metric_selected][0:args.epochs]
-plt.plot(range(len(logs_epochs)), logs_epochs, label='xn2')
-
-
-### 
-args.norm_type = 'xn3'
-args = args_(args)
-xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-logs_table = pd.read_excel(xlsx_path)
-logs_epochs = logs_table[metric_selected][0:args.epochs]
-plt.plot(range(len(logs_epochs)), logs_epochs, label='xn3')
+# args.norm_type = 'xn3'
+# args = args_(args)
+# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+# logs_table = pd.read_excel(xlsx_path)
+# logs_epochs = logs_table[metric_selected][0:args.epochs]
+# plt.plot(range(len(logs_epochs)), logs_epochs, label='xn3')
 
 
 args.norm_type = 'xn4'

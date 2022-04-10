@@ -16,7 +16,7 @@ seed=0
 
 for lr in 1e-3 1e-4;do
 for nlayer in 4 10;do
-for wd in 0;do
+for wd in 0 1e-4;do
 
     python main.py \
             --device $device \

@@ -2,6 +2,7 @@
 import torch 
 import torch.nn as nn
 import dgl.function as fn
+import torch.nn.functional as F
 from models.encoder.ogb_encoder import OGB_NodeEncoder, OGB_EdgeEncoder
 from models.norm.gnn_norm import GNN_Norm
 from models.pool.global_pool import GlobalPooling
@@ -73,6 +74,7 @@ class GCN(nn.Module):
                        activation='relu', dropout=0.5):
         super(GCN, self).__init__()
         self.num_layer = num_layer
+        self.norm_type = norm_type
         # input layer
         self.atom_encoder = OGB_NodeEncoder(dataset_name, embed_dim)
         # middle layer. i.e., convolutional layer
@@ -95,12 +97,14 @@ class GCN(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.pooling = GlobalPooling(pooling_type)
 
+        self.loss_weight = nn.Parameter(torch.zeros(num_layer))
 
     def forward(self, graphs, nfeat, efeat):
         # initializing node features h_n
         h_n = self.atom_encoder(nfeat)
         self.conv_feature = []
         self.norm_feature = []
+        self.norm_loss = torch.zeros(self.num_layer)
         for layer in range(self.num_layer):
             x = h_n
             # conv_layer & norm layer
@@ -108,10 +112,11 @@ class GCN(nn.Module):
             self.conv_feature.append(h_n)
             h_n = self.norm_layers[layer](graphs, h_n)
             self.norm_feature.append(h_n)
-            # activation
+           # activation
             h_n = self.activation(h_n)
             # h_n = h_n + x  
-            h_n = self.dropout(h_n)                     
+            h_n = self.dropout(h_n)    
+               
         # pooling & prediction
         g_n = self.pooling(graphs, h_n)
         pre = self.predict(g_n)
