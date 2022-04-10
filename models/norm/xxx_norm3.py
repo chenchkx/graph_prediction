@@ -22,11 +22,7 @@ class XXX_Norm3(nn.BatchNorm1d):
         self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):  
-
-        # graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor*graph.ndata['node_weight_normed'].unsqueeze(1), reducer='sum')
-        # # segment.segment_reduce(graph.batch_num_nodes(), tensor*graph.ndata['node_weight'].unsqueeze(1), reducer='sum')/segment.segment_reduce(graph.batch_num_nodes(), graph.ndata['node_weight'].unsqueeze(1), reducer='sum')
-        # tensor = tensor - repeat_tensor_interleave(self.fea_scale_weight*graph_mean, graph.batch_num_nodes())   
-        
+      
         tensor = tensor*(graph.ndata['degrees_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
         graph_mean = segment.segment_reduce(graph.batch_num_nodes(), tensor, reducer='mean')
         tensor = tensor - repeat_tensor_interleave(graph_mean, graph.batch_num_nodes())
@@ -47,11 +43,12 @@ class XXX_Norm3(nn.BatchNorm1d):
             mean_bn = torch.autograd.Variable(self.running_mean)
             var_bn = torch.autograd.Variable(self.running_var)       
         results = (tensor - mean_bn) / torch.sqrt(var_bn + self.eps)
-        # results = torch.pow(results, 1.01)
 
+
+        bias_calibration = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean') 
         if self.affine:
-            results = self.weight*results + repeat_tensor_interleave(self.bias*graph_mean, graph.batch_num_nodes())
+            results = self.weight*results + repeat_tensor_interleave(self.bias*bias_calibration, graph.batch_num_nodes())
         else:
             results = results
-     
+            
         return results
