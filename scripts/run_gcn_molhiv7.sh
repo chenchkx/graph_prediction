@@ -3,12 +3,12 @@
 set -e
 
 
-device=3
+device=2
 dataset='ogbg-molhiv'
 model='GCN'
 epochs=500
 nlayer=4
-norm_type='xn6'
+norm_type='xn7'
 activation='relu'
 dropout=0.5
 lr_warmup_type='cosine'

@@ -3,18 +3,19 @@
 set -e
 
 
-device=3
-dataset='ogbg-molhiv'
+device=1
+dataset='ogbg-molmuv'
 model='GCN'
 epochs=500
 nlayer=4
-norm_type='xn6'
+norm_type='xn9'
 activation='relu'
 dropout=0.5
 lr_warmup_type='cosine'
 seed=0
 
 for lr in 5e-4;do
+
 for nlayer in 4;do
 for wd in 0 1e-4;do
 

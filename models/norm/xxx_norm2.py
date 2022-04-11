@@ -18,12 +18,12 @@ class XXX_Norm2(nn.BatchNorm1d):
             self.register_parameter('bias', None)
 
         self.fea_scale_weight = nn.Parameter(torch.zeros(num_features))
-        self.var_scale_weight = nn.Parameter(torch.zeros(num_features))
+        self.var_scale_weight = nn.Parameter(torch.ones(num_features))
         self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):  
       
-        # tensor = tensor*(graph.ndata['degrees_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
+        tensor = tensor*(graph.ndata['degrees_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
@@ -34,14 +34,22 @@ class XXX_Norm2(nn.BatchNorm1d):
                     exponential_average_factor = 1.0 / float(self.num_batches_tracked)
                 else: 
                     exponential_average_factor = self.momentum
+            batch_mean = tensor.mean(0, keepdim=False)
+            batch_var = tensor.var(0, keepdim=False)
+        else:  
+            batch_mean = torch.autograd.Variable(self.running_mean)
+            batch_var = torch.autograd.Variable(self.running_var) 
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
 
-        bias_calibration = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean') 
-        if self.affine:
-            results = self.weight*results + repeat_tensor_interleave(self.bias*bias_calibration, graph.batch_num_nodes())
-        else:
-            results = results
+        # var_scale = segment.segment_reduce(graph.batch_num_nodes(), torch.pow(results,2), reducer='mean')
+        # var_scale = torch.sigmoid(self.var_scale_weight*batch_var/(var_scale+self.eps))
+        # results = results*repeat_tensor_interleave(var_scale, graph.batch_num_nodes()) 
+
+        # if self.affine:
+        #     results = self.weight*results + repeat_tensor_interleave(self.bias*graph_mean, graph.batch_num_nodes())
+        # else:
+        #     results = results
      
         return results
