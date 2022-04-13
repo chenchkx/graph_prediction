@@ -23,8 +23,8 @@ class XXX_Norm8(nn.BatchNorm1d):
 
     def forward(self, graph, tensor):  
       
-        tensor = tensor*(graph.ndata['degrees_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
-        tensor = tensor + self.fea_scale_weight*tensor.mean(0, keepdim=False)
+        tensor = tensor + self.fea_scale_weight*tensor*(graph.ndata['degrees_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
+        # batch_mean.unsqueeze(0).repeat(tensor.shape[0],1)*graph.ndata['degrees_normed'].unsqueeze(1)
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
@@ -46,13 +46,13 @@ class XXX_Norm8(nn.BatchNorm1d):
 
         var_scale = segment.segment_reduce(graph.batch_num_nodes(), torch.pow(results,2), reducer='mean')
         var_scale = torch.sigmoid(self.var_scale_weight*batch_var/(var_scale+self.eps)+self.var_scale_bias)
-        results = results*repeat_tensor_interleave(var_scale, graph.batch_num_nodes()) 
-
+        results = results*repeat_tensor_interleave(var_scale, graph.batch_num_nodes())
+        
         # if self.affine:
         #     results = self.weight*results + self.bias
         # else:
-        #     results = results  
-
+        #     results = results
+     
         return results
    
 

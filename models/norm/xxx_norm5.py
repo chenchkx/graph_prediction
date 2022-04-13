@@ -38,18 +38,20 @@ class XXX_Norm5(nn.BatchNorm1d):
             batch_var = tensor.var(0, keepdim=False)
         else:  
             batch_mean = torch.autograd.Variable(self.running_mean)
-            batch_var = torch.autograd.Variable(self.running_var)         
+            batch_var = torch.autograd.Variable(self.running_var) 
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
 
-        var_scale = segment.segment_reduce(graph.batch_num_nodes(), torch.pow(results,2), reducer='mean')
-        var_scale = torch.sigmoid(self.var_scale_weight*batch_var/(var_scale+self.eps)+self.var_scale_bias)
-        results = results*repeat_tensor_interleave(var_scale, graph.batch_num_nodes())
-        
-        # if self.affine:
-        #     results = self.weight*results + self.bias
-        # else:
-        #     results = results
+        # var_scale = segment.segment_reduce(graph.batch_num_nodes(), torch.pow(results,2), reducer='mean')
+        var_scale = graph.ndata['degrees_normed']*torch.pow(graph.ndata['batch_nodes'], 2)
+        var_scale = var_scale.unsqueeze(1).repeat(1, self.num_features)
+        var_scale = torch.sigmoid(self.var_scale_weight/(var_scale+self.eps)+self.var_scale_bias)
+        results = results*var_scale
+
+        if self.affine:
+            results = self.weight*results + self.bias
+        else:
+            results = results
      
         return results

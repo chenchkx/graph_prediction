@@ -39,9 +39,9 @@ class XXX_Norm(nn.BatchNorm1d):
             var_bn = torch.autograd.Variable(self.running_var)       
         results = (tensor - mean_bn) / torch.sqrt(var_bn + self.eps)
 
-        # if self.affine:
-        #     results = self.weight*results + self.bias
-        # else:
-        #     results = results
+        if self.affine:
+            results = self.weight*results + self.bias
+        else:
+            results = results
     
         return results

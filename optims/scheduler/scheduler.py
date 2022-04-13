@@ -32,7 +32,8 @@ class LR_Scheduler(LambdaLR):
 
     def lr_lambda(self, step):
         if self.warmup_type == 'None':
-            return self.gamma ** int(step/self.step_size)
+            # return self.gamma ** int(step/self.step_size)
+            return 1.0
         if step < self.warmup_steps:
             return self.lr_warmup(step)
         return self.lr_decay(step)
