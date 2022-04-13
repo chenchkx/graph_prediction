@@ -3,7 +3,7 @@
 set -e
 
 
-device=3
+device=2
 dataset='ogbg-molhiv'
 model='GCN'
 epochs=500
@@ -14,7 +14,7 @@ dropout=0.5
 lr_warmup_type='None'
 seed=0
 
-for lr in 1e-4;do
+for lr in 1e-5 1e-4;do
 for seed in 0;do
 for wd in 0.0;do
     python main.py \

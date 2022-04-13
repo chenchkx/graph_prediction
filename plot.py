@@ -45,7 +45,7 @@ if not os.path.exists(args.perf_imgs_dir):
     os.mkdir(args.perf_imgs_dir)
 
 
-curve_set = 'test'
+curve_set = 'train'
 curve_metric = 'loss1' # loss or metric
 if curve_metric != 'loss':
     curve_metric = get_metric(args)
@@ -63,13 +63,13 @@ metric_selected = (f"{curve_set}-"+ f"{curve_metric}")
 # logs_epochs = logs_table[metric_selected][0:args.epochs]
 # plt.plot(range(len(logs_epochs)), logs_epochs, label='None')
 
-# ##
-# args.norm_type = 'bn'
-# args = args_(args)
-# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-# logs_table = pd.read_excel(xlsx_path)
-# logs_epochs = logs_table[metric_selected][0:args.epochs]
-# plt.plot(range(len(logs_epochs)), logs_epochs, label='bn')
+##
+args.norm_type = 'bn'
+args = args_(args)
+xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+logs_table = pd.read_excel(xlsx_path)
+logs_epochs = logs_table[metric_selected][0:args.epochs]
+plt.plot(range(len(logs_epochs)), logs_epochs, label='bn')
 
 
 args.norm_type = 'bnf'
@@ -123,7 +123,7 @@ logs_epochs = logs_table[metric_selected][0:args.epochs]
 plt.plot(range(len(logs_epochs)), logs_epochs, label='xn1')
 
 
-# ## 
+## 
 # args.norm_type = 'xn2'
 # args = args_(args)
 # xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
@@ -149,12 +149,12 @@ logs_epochs = logs_table[metric_selected][0:args.epochs]
 plt.plot(range(len(logs_epochs)), logs_epochs, label='xn4')
 
 
-# args.norm_type = 'xn5'
-# args = args_(args)
-# xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
-# logs_table = pd.read_excel(xlsx_path)
-# logs_epochs = logs_table[metric_selected][0:args.epochs]
-# plt.plot(range(len(logs_epochs)), logs_epochs, label='xn5')
+args.norm_type = 'xn5'
+args = args_(args)
+xlsx_path = os.path.join(args.perf_xlsx_dir, args.identity + ".xlsx")
+logs_table = pd.read_excel(xlsx_path)
+logs_epochs = logs_table[metric_selected][0:args.epochs]
+plt.plot(range(len(logs_epochs)), logs_epochs, label='xn5')
 
 
 # args.norm_type = 'xn6'
