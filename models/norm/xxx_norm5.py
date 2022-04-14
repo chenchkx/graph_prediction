@@ -39,7 +39,7 @@ class XXX_Norm5(nn.BatchNorm1d):
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
 
-        var_scale = torch.sigmoid(self.var_scale_weight*torch.sqrt(fea_scale.repeat(1,self.num_features))+self.var_scale_bias)
+        var_scale = torch.sigmoid(self.var_scale_weight/torch.sqrt(fea_scale.repeat(1,self.num_features))+self.var_scale_bias)
         results = results*var_scale
 
         # if self.affine:

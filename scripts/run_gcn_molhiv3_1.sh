@@ -3,20 +3,21 @@
 set -e
 
 
-device=0
+device=1
 dataset='ogbg-molhiv'
 model='GCN'
 epochs=500
 nlayer=4
-norm_type='xn4'
+norm_type='xn3'
 activation='relu'
 dropout=0.5
-lr_warmup_type='None'
+lr_warmup_type='cosine'
 seed=0
 
-for lr in 1e-4 1e-5;do
+for lr in 1e-3;do
 for seed in 0;do
 for wd in 0.0;do
+
     python main.py \
             --device $device \
             --dataset $dataset \
