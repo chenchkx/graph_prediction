@@ -22,8 +22,9 @@ class XXX_Norm9(nn.BatchNorm1d):
         self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):  
-      
-        tensor = tensor*(graph.ndata['degrees_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
+        
+        fea_scale = (graph.ndata['degrees_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
+        tensor = tensor*fea_scale
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
@@ -34,25 +35,22 @@ class XXX_Norm9(nn.BatchNorm1d):
                     exponential_average_factor = 1.0 / float(self.num_batches_tracked)
                 else: 
                     exponential_average_factor = self.momentum
-            batch_mean = tensor.mean(0, keepdim=False)
-            batch_var = tensor.var(0, keepdim=False)
-        else:  
-            batch_mean = torch.autograd.Variable(self.running_mean)
-            batch_var = torch.autograd.Variable(self.running_var)         
+            var_batch = tensor.var(0, keepdim=False)
+        else:
+            var_batch = self.running_var
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
+        
+        var_graph = segment.segment_reduce(graph.batch_num_nodes(), torch.pow(results,2), reducer='mean')
+        var_scale = repeat_tensor_interleave(var_graph/(var_batch+self.eps), graph.batch_num_nodes())*fea_scale 
+        # var_scale = torch.sigmoid(torch.sqrt(var_scale)*fea_scale)
+        results = results*var_scale
 
-        graph_mean = segment.segment_reduce(graph.batch_num_nodes(), results, reducer='mean')
-        var_scale = segment.segment_reduce(graph.batch_num_nodes(), torch.pow(results,2), reducer='mean')
-        var_scale = torch.sigmoid(self.var_scale_weight*batch_var/(var_scale+self.eps)+self.var_scale_bias)
-        results = results*repeat_tensor_interleave(var_scale, graph.batch_num_nodes()) 
-        results = results + self.fea_scale_weight*repeat_tensor_interleave(graph_mean+batch_mean, graph.batch_num_nodes())
-        # if self.affine:
-        #     results = self.weight*results + self.bias
-        # else:
-        #     results = results  
-
+        if self.affine:
+            results = self.weight*results + self.bias
+        else:
+            results = results
+     
         return results
-
    
