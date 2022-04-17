@@ -39,11 +39,11 @@ class XXX_Norm1(nn.BatchNorm1d):
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
 
-        # var_scale = torch.sigmoid(self.var_scale_weight*torch.sqrt(fea_scale.repeat(1,self.num_features))+self.var_scale_bias)
-        # results = results*var_scale
+        var_scale = torch.sigmoid(self.var_scale_weight*graph.ndata['degrees_normed'].unsqueeze(1)+self.var_scale_bias)
+        results = results*var_scale
 
         # if self.affine:
-        #     results = self.weight*results + repeat_tensor_interleave(self.bias*graph_mean, graph.batch_num_nodes())
+        #     results = self.weight*results + self.bias
         # else:
         #     results = results
      

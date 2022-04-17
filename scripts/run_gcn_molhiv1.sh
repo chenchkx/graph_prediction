@@ -3,7 +3,7 @@
 set -e
 
 
-device=2
+device=0
 dataset='ogbg-molhiv'
 model='GCN'
 epochs=500
@@ -11,10 +11,10 @@ nlayer=4
 norm_type='xn1'
 activation='relu'
 dropout=0.5
-lr_warmup_type='cosine'
+lr_warmup_type='None'
 seed=0
 
-for lr in 1e-3;do
+for lr in 1e-5;do
 for seed in 0;do
 for wd in 0.0;do
     python main.py \
@@ -34,8 +34,8 @@ done
 done
 done
 
-lr_warmup_type='None'
-for lr in 1e-4 1e-5;do
+nlayer=10
+for lr in 1e-5;do
 for seed in 0;do
 for wd in 0.0;do
     python main.py \
