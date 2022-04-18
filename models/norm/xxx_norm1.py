@@ -35,10 +35,14 @@ class XXX_Norm1(nn.BatchNorm1d):
                     exponential_average_factor = 1.0 / float(self.num_batches_tracked)
                 else: 
                     exponential_average_factor = self.momentum
+            batch_mean = tensor.mean(0, keepdim=False)
+        else:
+            batch_mean = self.running_mean
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-
+                    
+        results = results + self.fea_scale_weight*batch_mean
         var_scale = torch.sigmoid(self.var_scale_weight*graph.ndata['degrees_normed'].unsqueeze(1)+self.var_scale_bias)
         results = results*var_scale
 

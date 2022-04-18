@@ -28,12 +28,14 @@ class LR_Scheduler(LambdaLR):
             lr_rate = max(0.0, float(self.total_steps - step) / float(max(1.0, self.total_steps - self.warmup_steps)))
         elif 'step' in self.warmup_type:
             lr_rate = self.gamma ** int((step - self.warmup_steps)/self.step_size)
+        elif 'None' in self.warmup_type:
+            lr_rate = 1.0
         return lr_rate
 
     def lr_lambda(self, step):
-        if self.warmup_type == 'None':
-            # return self.gamma ** int(step/self.step_size)
-            return 1.0
+        # if self.warmup_type == 'None':
+        #     # return self.gamma ** int(step/self.step_size)
+        #     return 1.0
         if step < self.warmup_steps:
             return self.lr_warmup(step)
         return self.lr_decay(step)
