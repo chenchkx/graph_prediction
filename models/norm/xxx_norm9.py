@@ -23,8 +23,8 @@ class XXX_Norm9(nn.BatchNorm1d):
 
     def forward(self, graph, tensor):  
         
-        fea_scale = (graph.ndata['degrees_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
-        tensor = tensor*fea_scale
+        fea_scale = (graph.ndata['degrees']/graph.ndata['degrees'].sum()).unsqueeze(1)
+        tensor = tensor*fea_scale*graph.batch_num_nodes().sum()
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
@@ -35,22 +35,19 @@ class XXX_Norm9(nn.BatchNorm1d):
                     exponential_average_factor = 1.0 / float(self.num_batches_tracked)
                 else: 
                     exponential_average_factor = self.momentum
-            var_batch = tensor.var(0, keepdim=False)
+            batch_mean = tensor.mean(0, keepdim=False)
         else:
-            var_batch = self.running_var
+            batch_mean = self.running_mean
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-        
-        var_graph = segment.segment_reduce(graph.batch_num_nodes(), torch.pow(results,2), reducer='mean')
-        var_scale = repeat_tensor_interleave(var_graph/(var_batch+self.eps), graph.batch_num_nodes())*fea_scale 
-        # var_scale = torch.sigmoid(torch.sqrt(var_scale)*fea_scale)
-        results = results*var_scale
+                    
+        var_scale = torch.sigmoid(self.var_scale_weight*fea_scale+self.var_scale_bias)
+        results = var_scale*(results + self.fea_scale_weight*batch_mean)
 
-        if self.affine:
-            results = self.weight*results + self.bias
-        else:
-            results = results
+        # if self.affine:
+        #     results = self.weight*results + self.bias
+        # else:
+        #     results = results
      
         return results
-   

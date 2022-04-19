@@ -23,8 +23,8 @@ class XXX_Norm3(nn.BatchNorm1d):
 
     def forward(self, graph, tensor):  
         
-        fea_scale = (graph.ndata['node_weight']*graph.ndata['batch_nodes']).unsqueeze(1)
-        tensor = tensor*fea_scale
+        fea_scale = (graph.ndata['node_weight']/graph.ndata['node_weight'].sum()).unsqueeze(1)
+        tensor = tensor*fea_scale*graph.batch_num_nodes().sum()
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
@@ -42,9 +42,8 @@ class XXX_Norm3(nn.BatchNorm1d):
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
                     
-        results = results + self.fea_scale_weight*batch_mean
-        var_scale = torch.sigmoid(self.var_scale_weight*graph.ndata['node_weight'].unsqueeze(1)+self.var_scale_bias)
-        results = results*var_scale
+        var_scale = torch.sigmoid(self.var_scale_weight*fea_scale+self.var_scale_bias)
+        results = var_scale*(results + self.fea_scale_weight*batch_mean)
 
         # if self.affine:
         #     results = self.weight*results + self.bias

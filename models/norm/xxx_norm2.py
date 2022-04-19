@@ -17,7 +17,6 @@ class XXX_Norm2(nn.BatchNorm1d):
             self.register_parameter('weight', None)
             self.register_parameter('bias', None)
 
-
         self.fea_scale_weight = nn.Parameter(torch.zeros(num_features))
         self.var_scale_weight = nn.Parameter(torch.ones(num_features))
         self.var_scale_bias = nn.Parameter(torch.zeros(num_features))
@@ -43,8 +42,8 @@ class XXX_Norm2(nn.BatchNorm1d):
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
                     
-        results = results + self.fea_scale_weight*batch_mean
-        results = results*graph.ndata['degrees_normed'].unsqueeze(1)
+        var_scale = torch.sigmoid(graph.ndata['degrees_normed'].unsqueeze(1))
+        results = var_scale*(results + self.fea_scale_weight*batch_mean)
 
         # if self.affine:
         #     results = self.weight*results + self.bias
