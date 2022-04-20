@@ -23,32 +23,32 @@ nfs_dataset_path2 = '/nfs4-p1/ckx/datasets/ogb/graph/'
 def add_node_weight(dataset):
  
     for g in dataset:
-        row, col = g[0].edges()
-        num_of_nodes = g[0].num_nodes()
-        adj = torch.zeros(num_of_nodes, num_of_nodes)
-        for i in range(row.shape[0]):
-            adj[row[i]][col[i]]=1.0        
-        A_array = adj.detach().numpy()
-        G = nx.from_numpy_matrix(A_array)
+        # row, col = g[0].edges()
+        # num_of_nodes = g[0].num_nodes()
+        # adj = torch.zeros(num_of_nodes, num_of_nodes)
+        # for i in range(row.shape[0]):
+        #     adj[row[i]][col[i]]=1.0        
+        # A_array = adj.detach().numpy()
+        # G = nx.from_numpy_matrix(A_array)
 
-        node_weight = torch.zeros(num_of_nodes)
-        for i in range(len(A_array)):
-            s_indexes = []
-            for j in range(len(A_array)):
-                s_indexes.append(i)
-                if(A_array[i][j]==1):
-                    s_indexes.append(j)      
-            subgraph_nodes = len(list(G.subgraph(s_indexes).nodes))
-            subgraph_edges = G.subgraph(s_indexes).number_of_edges() + subgraph_nodes
-            subgraph_nodes = subgraph_nodes + 1
-            instance_energy = subgraph_edges/(subgraph_nodes*(subgraph_nodes-1))
-            instance_energy = instance_energy*(subgraph_nodes**2)
-            node_weight[i] = instance_energy
+        # node_weight = torch.zeros(num_of_nodes)
+        # for i in range(len(A_array)):
+        #     s_indexes = []
+        #     for j in range(len(A_array)):
+        #         s_indexes.append(i)
+        #         if(A_array[i][j]==1):
+        #             s_indexes.append(j)      
+        #     subgraph_nodes = len(list(G.subgraph(s_indexes).nodes))
+        #     subgraph_edges = G.subgraph(s_indexes).number_of_edges() + subgraph_nodes
+        #     subgraph_nodes = subgraph_nodes + 1
+        #     instance_energy = subgraph_edges/(subgraph_nodes*(subgraph_nodes-1))
+        #     instance_energy = instance_energy*(subgraph_nodes**2)
+        #     node_weight[i] = instance_energy
 
         g[0].ndata['snorm_n'] = torch.FloatTensor(g[0].num_nodes()).fill_(1/g[0].num_nodes()**0.5) 
         g[0].ndata['batch_nodes'] = torch.FloatTensor(g[0].num_nodes()).fill_(g[0].num_nodes()) 
-        g[0].ndata['node_weight'] = node_weight
-        g[0].ndata['node_weight_normed'] = node_weight/node_weight.sum()
+        # g[0].ndata['node_weight'] = node_weight
+        # g[0].ndata['node_weight_normed'] = node_weight/node_weight.sum()
         g[0].ndata['degrees'] = g[0].in_degrees() + 1
         g[0].ndata['degrees_normed'] =  g[0].ndata['degrees']/g[0].ndata['degrees'].sum()
 
