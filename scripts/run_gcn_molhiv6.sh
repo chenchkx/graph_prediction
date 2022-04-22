@@ -3,7 +3,7 @@
 set -e
 
 
-device=0
+device=2
 dataset='ogbg-molhiv'
 model='GCN'
 epochs=500
@@ -15,7 +15,7 @@ lr_warmup_type='linear'
 seed=0
 
 for lr in 1e-3;do
-for seed in 0;do
+for nlayer in 40;do
 for wd in 0.0;do
     python main.py \
             --device $device \
