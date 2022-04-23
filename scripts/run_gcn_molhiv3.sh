@@ -15,7 +15,7 @@ lr_warmup_type='linear'
 seed=0
 
 for lr in 1e-3;do
-for nlayer in 4 40;do
+for nlayer in 40;do
 for wd in 0.0;do
     python main.py \
             --device $device \

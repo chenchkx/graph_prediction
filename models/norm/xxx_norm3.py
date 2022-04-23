@@ -42,14 +42,13 @@ class XXX_Norm3(nn.BatchNorm1d):
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-
-        results = results + self.mean_bias_weight*batch_mean
+    
         var_scale = repeat_tensor_interleave(batch_var/(segment.segment_reduce(graph.batch_num_nodes(), torch.pow(results,2), reducer='mean')+self.eps), graph.batch_num_nodes())   
-        var_scale = torch.sigmoid(self.var_scale_weight*var_scale*graph.ndata['degrees_normed'].unsqueeze(1))
+        results = torch.sigmoid(var_scale*graph.ndata['degrees_normed'].unsqueeze(1))*results
         
-        # if self.affine:
-        #     results = self.weight*var_scale*results + self.bias    
-        # else:
-        #     results = var_scale*results
-        
+        if self.affine:
+            results = self.weight*results + self.bias    
+        else:
+            results = results
+     
         return results
