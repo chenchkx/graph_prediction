@@ -20,25 +20,21 @@ from models.norm.xxx_norm9 import XXX_Norm9
 from models.norm.xxx_norm10 import XXX_Norm10
 
 class GNN_Norm(nn.Module):
-    def __init__(self, norm_type = 'bn', embed_dim=300, print_info=None):
+    def __init__(self, norm_type = 'bn', embed_dim=300, affine=True):
         super(GNN_Norm, self).__init__()
 
         self.norm_type = norm_type
         self.norm = None
         if norm_type == 'bn':
-            self.norm = LocalBN1d(embed_dim)
-        if norm_type == 'bnf':
-            self.norm = LocalBN1d_FalseAffine(embed_dim)
-        if norm_type == 'bnm':
-            self.norm = LocalBN1d_Manu(embed_dim)
+            self.norm = LocalBN1d(embed_dim, affine=affine)
         elif norm_type == 'gn':
-            self.norm = GraphNorm(embed_dim)
+            self.norm = GraphNorm(embed_dim, affine=affine)
         elif norm_type == 'in':
-            self.norm = InstanceNorm(embed_dim)
+            self.norm = InstanceNorm(embed_dim, affine=affine)
         elif norm_type == 'xn':
-            self.norm = XXX_Norm(embed_dim)
+            self.norm = XXX_Norm(embed_dim, affine=affine)
         elif norm_type == 'xn1':
-            self.norm = XXX_Norm1(embed_dim)
+            self.norm = XXX_Norm1(embed_dim, affine=affine)
         elif norm_type == 'xn2':
             self.norm = XXX_Norm2(embed_dim)      
         elif norm_type == 'xn3':

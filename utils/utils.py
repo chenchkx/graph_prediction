@@ -92,9 +92,7 @@ def load_process_dataset(args):
 ### load gnn model
 def load_model(args):
     if args.model == 'GCN':
-        model = GCN(args.dataset, args.embed_dim, args.output_dim, args.num_layer,
-                    norm_type=args.norm_type, pooling_type=args.pool_type,
-                    activation=args.activation, dropout=args.dropout).to(args.device)
+        model = GCN(args.embed_dim, args.output_dim, args.num_layer, args).to(args.device)
     elif args.model == 'GIN':
         model = GIN(args.dataset, args.embed_dim, args.output_dim, args.num_layer, args.norm_type).to(args.device)
     print('- ' * 30)
@@ -164,6 +162,7 @@ def args_(args, dataset):
                      f"{args.embed_dim}-"+
                      f"{args.pool_type}-"+
                      f"{args.norm_type}-"+
+                     f"{args.norm_affine}-"+
                      f"{args.activation}-"+
                      f"{args.dropout}-"+
                      f"{args.lr_warmup_type}-"+

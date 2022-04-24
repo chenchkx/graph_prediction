@@ -7,11 +7,12 @@ from dgl.ops import segment
 
 class InstanceNorm(nn.Module):
 
-    def __init__(self, embed_dim=300):
+    def __init__(self, embed_dim=300, affine=True):
         super(InstanceNorm, self).__init__()
 
         self.bias = nn.Parameter(torch.zeros(embed_dim))
         self.weight = nn.Parameter(torch.ones(embed_dim))
+        self.affine = affine
 
     def repeat(self, tensor, batch_list):
         batch_size = len(batch_list)
@@ -26,6 +27,12 @@ class InstanceNorm(nn.Module):
         std = segment.segment_reduce(batch_list, sub.pow(2), reducer='mean')
         std = (std + 1e-6).sqrt()
         std = self.repeat(std, batch_list)
-        return self.weight * sub / std + self.bias
+        rst = sub / std
+
+        if self.affine:
+            rst = self.weight*rst + self.bias
+        else:
+            rst = rst
+        return rst
 
         

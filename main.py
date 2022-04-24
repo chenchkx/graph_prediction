@@ -3,11 +3,12 @@ import os
 import torch
 import argparse
 from utils.utils import *
+from xmlrpc.client import boolean
 from warnings import simplefilter
-torch.set_num_threads(10)
-simplefilter(action='ignore', category=FutureWarning)
 
+torch.set_num_threads(10)
 dir_path = os.path.dirname(__file__)
+simplefilter(action='ignore', category=FutureWarning)
 
 def main(args):
     set_seed(args)
@@ -40,15 +41,16 @@ if __name__ =='__main__':
     parser.add_argument("--dataset", type=str, default='ogbg-molbbbp')
 
     parser.add_argument("--model", type=str, default='GCN', choices='GIN, GCN')
-    parser.add_argument("--epochs", type=int, default=500)
+    parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("--epoch_slice", type=int, default=0)
-    parser.add_argument("--num_layer", type=int, default=4)
+    parser.add_argument("--num_layer", type=int, default=3)
     parser.add_argument("--embed_dim", type=int, default=128)
-    parser.add_argument("--pool_type", type=str, default="mean", choices=['dke', 'sum', 'mean', 'max'])
-    parser.add_argument("--norm_type", type=str, default='xn3')
-    parser.add_argument("--activation", type=str, default='None', choices=['relu', 'None'])
+    parser.add_argument("--pool_type", type=str, default="mean", choices=['dke', 'mean', 'sum', 'max'])
+    parser.add_argument("--norm_type", type=str, default='xn')
+    parser.add_argument("--norm_affine", type=boolean, default=True)
+    parser.add_argument("--activation", type=str, default='relu', choices=['relu', 'None'])
     parser.add_argument("--dropout", type=float, default=0.5)
-    parser.add_argument("--lr_warmup_type", type=str, default='None', choices=['step','cosine','linear','None'])
+    parser.add_argument("--lr_warmup_type", type=str, default='cosine', choices=['step','cosine','linear','None'])
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--weight_decay", type=float, default=0.0)
     parser.add_argument("--loss_type", type=str, default='ogb', choices=['ogb', 'mce',  'bce'], 

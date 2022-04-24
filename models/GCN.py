@@ -69,20 +69,18 @@ class GCNConvLayer(nn.Module):
 
 
 class GCN(nn.Module):
-    def __init__(self, dataset_name, embed_dim, output_dim, num_layer, 
-                       norm_type='bn', pooling_type="mean", 
-                       activation='relu', dropout=0.5):
+    def __init__(self, embed_dim, output_dim, num_layer, args):
         super(GCN, self).__init__()
         self.num_layer = num_layer
-        self.norm_type = norm_type
+        self.norm_type = args.norm_type
         # input layer
-        self.atom_encoder = OGB_NodeEncoder(dataset_name, embed_dim)
+        self.atom_encoder = OGB_NodeEncoder(args.dataset, embed_dim)
         # middle layer. i.e., convolutional layer
         self.conv_layers = nn.ModuleList()
         self.norm_layers = nn.ModuleList() 
         for i in range(num_layer):
-            self.conv_layers.append(GCNConvLayer(dataset_name, embed_dim))
-            self.norm_layers.append(GNN_Norm(norm_type, embed_dim))
+            self.conv_layers.append(GCNConvLayer(args.dataset, embed_dim))
+            self.norm_layers.append(GNN_Norm(args.norm_type, embed_dim, affine=args.norm_affine))
         # output layer
         # self.predict = nn.Sequential(
         #     nn.Linear(embed_dim, embed_dim//2),
@@ -93,11 +91,10 @@ class GCN(nn.Module):
         self.predict = nn.Linear(embed_dim, output_dim)  
         
         # other modules in GNN
-        self.activation = LocalActivation(activation)
-        self.dropout = nn.Dropout(dropout)
-        self.pooling = GlobalPooling(pooling_type)
+        self.activation = LocalActivation(args.activation)
+        self.dropout = nn.Dropout(args.dropout)
+        self.pooling = GlobalPooling(args.pool_type)
 
-        self.loss_weight = nn.Parameter(torch.zeros(num_layer))
 
     def forward(self, graphs, nfeat, efeat):
         # initializing node features h_n
@@ -112,7 +109,7 @@ class GCN(nn.Module):
             self.conv_feature.append(h_n)
             h_n = self.norm_layers[layer](graphs, h_n)
             self.norm_feature.append(h_n)
-           # activation
+            # activation
             h_n = self.activation(h_n)
             # h_n = h_n + x  
             h_n = self.dropout(h_n)    
