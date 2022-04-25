@@ -1,9 +1,10 @@
+#!/usr/bin/env bash
 
 set -e
 
 
-device=2
-dataset='ogbg-moltoxcast'
+device=1
+dataset='ogbg-molhiv'
 model='GCN'
 epochs=500
 nlayer=50
@@ -34,3 +35,4 @@ for wd in 0.0;do
 done
 done
 done
+
