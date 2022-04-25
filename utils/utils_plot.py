@@ -25,6 +25,7 @@ def args_(args):
                      f"{args.embed_dim}-"+
                      f"{args.pool_type}-"+
                      f"{args.norm_type}-"+
+                     f"{args.norm_affine}-"+
                      f"{args.activation}-"+
                      f"{args.dropout}-"+
                      f"{args.lr_warmup_type}-"+

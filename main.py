@@ -41,13 +41,12 @@ if __name__ =='__main__':
     parser.add_argument("--dataset", type=str, default='ogbg-molbbbp')
 
     parser.add_argument("--model", type=str, default='GCN', choices='GIN, GCN')
-    parser.add_argument("--epochs", type=int, default=5)
+    parser.add_argument("--epochs", type=int, default=500)
     parser.add_argument("--epoch_slice", type=int, default=0)
     parser.add_argument("--num_layer", type=int, default=3)
     parser.add_argument("--embed_dim", type=int, default=128)
     parser.add_argument("--pool_type", type=str, default="mean", choices=['dke', 'mean', 'sum', 'max'])
     parser.add_argument("--norm_type", type=str, default='xn')
-    parser.add_argument("--norm_affine", type=boolean, default=True)
     parser.add_argument("--activation", type=str, default='relu', choices=['relu', 'None'])
     parser.add_argument("--dropout", type=float, default=0.5)
     parser.add_argument("--lr_warmup_type", type=str, default='cosine', choices=['step','cosine','linear','None'])
@@ -63,8 +62,9 @@ if __name__ =='__main__':
     parser.add_argument("--logs_perf_dir", type=str, default=os.path.join(dir_path,'logs_perf'), 
                         help="logs' files of the loss and performance")
     parser.add_argument("--logs_stas_dir", type=str, default=os.path.join(dir_path,'logs_stas'), 
-                        help="statistics' files of the avg and std")
-    parser.add_argument("--node_weight", type=bool, default=True)
+                        help="statistics' files of the avg and std")                        
+    parser.add_argument("--norm_affine", action="store_true")
+    parser.add_argument("--node_weight", action="store_true")
     parser.add_argument("--state_dict", action="store_true")
 
     args = parser.parse_args()

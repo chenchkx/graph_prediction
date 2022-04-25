@@ -36,7 +36,7 @@ class GNN_Norm(nn.Module):
         elif norm_type == 'xn1':
             self.norm = XXX_Norm1(embed_dim, affine=affine)
         elif norm_type == 'xn2':
-            self.norm = XXX_Norm2(embed_dim)      
+            self.norm = XXX_Norm2(embed_dim, affine=affine)      
         elif norm_type == 'xn3':
             self.norm = XXX_Norm3(embed_dim)
         elif norm_type == 'xn4':

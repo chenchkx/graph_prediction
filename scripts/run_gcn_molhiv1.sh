@@ -9,10 +9,9 @@ model='GCN'
 epochs=500
 nlayer=50
 norm_type='xn1'
-norm_affine=False
 activation='relu'
 dropout=0.5
-lr_warmup_type='cosine'
+lr_warmup_type='linear'
 seed=0
 
 for lr in 1e-3 1e-2;do
@@ -25,14 +24,14 @@ for wd in 0.0;do
             --epochs $epochs \
             --num_layer $nlayer \
             --norm_type $norm_type \
-            --norm_affine $norm_affine \
             --activation $activation \
             --dropout $dropout \
             --lr_warmup_type $lr_warmup_type \
             --lr $lr \
             --seed $seed \
-            --weight_decay $wd
-
+            --weight_decay $wd\
+            --norm_affine\
+            --node_weight
 done
 done
 done
