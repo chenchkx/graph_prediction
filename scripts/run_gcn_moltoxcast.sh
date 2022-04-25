@@ -10,10 +10,10 @@ nlayer=50
 norm_type='xn'
 activation='relu'
 dropout=0.5
-lr_warmup_type='linear'
+lr_warmup_type='step'
 seed=0
 
-for lr in 1e-3 1e-2;do
+for lr in 1e-3 1e-4;do
 for seed in 0;do
 for wd in 0.0;do
     python main.py \
