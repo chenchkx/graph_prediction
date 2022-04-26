@@ -23,32 +23,91 @@ nfs_dataset_path2 = '/nfs4-p1/ckx/datasets/ogb/graph/'
 def add_node_weight(dataset):
  
     for g in dataset:
+        ## coefficients in terms of mean value
+        ## version 1.0
+        row, col = g[0].edges()
+        num_of_nodes = g[0].num_nodes()
+        adj = torch.zeros(num_of_nodes, num_of_nodes)
+        for i in range(row.shape[0]):
+            adj[row[i]][col[i]]=1.0        
+        A_array = adj.detach().numpy()
+        G = nx.from_numpy_matrix(A_array)
+
+        node_weight = torch.zeros(num_of_nodes)
+        for i in range(len(A_array)):
+            s_indexes = []
+            for j in range(len(A_array)):
+                s_indexes.append(i)
+                if(A_array[i][j]==1):
+                    s_indexes.append(j)      
+            subgraph_nodes = len(list(G.subgraph(s_indexes).nodes))
+            subgraph_edges = G.subgraph(s_indexes).number_of_edges() + subgraph_nodes
+            subgraph_nodes = subgraph_nodes + 1
+            instance_energy = subgraph_edges/(subgraph_nodes*(subgraph_nodes-1))
+            instance_energy = instance_energy*(subgraph_nodes**2)
+            node_weight[i] = instance_energy
+
+        ## coefficients in terms of graph structure
         # row, col = g[0].edges()
         # num_of_nodes = g[0].num_nodes()
         # adj = torch.zeros(num_of_nodes, num_of_nodes)
-        # for i in range(row.shape[0]):
-        #     adj[row[i]][col[i]]=1.0        
+        # for i in np.arange(row.shape[0]):
+        #     adj[row[i]][col[i]]=1.0
+
         # A_array = adj.detach().numpy()
         # G = nx.from_numpy_matrix(A_array)
+    
+        # sub_graphs = []
+        # subgraph_nodes_list = []
+        # sub_graphs_adj = []
+        # sub_graph_edges = []
+        # new_adj = torch.zeros(A_array.shape[0], A_array.shape[0])
 
-        # node_weight = torch.zeros(num_of_nodes)
-        # for i in range(len(A_array)):
+        # for i in np.arange(len(A_array)):
         #     s_indexes = []
-        #     for j in range(len(A_array)):
+        #     for j in np.arange(len(A_array)):
         #         s_indexes.append(i)
         #         if(A_array[i][j]==1):
-        #             s_indexes.append(j)      
-        #     subgraph_nodes = len(list(G.subgraph(s_indexes).nodes))
-        #     subgraph_edges = G.subgraph(s_indexes).number_of_edges() + subgraph_nodes
-        #     subgraph_nodes = subgraph_nodes + 1
-        #     instance_energy = subgraph_edges/(subgraph_nodes*(subgraph_nodes-1))
-        #     instance_energy = instance_energy*(subgraph_nodes**2)
-        #     node_weight[i] = instance_energy
+        #             s_indexes.append(j)
+        #     sub_graphs.append(G.subgraph(s_indexes))
+
+        # for i in np.arange(len(sub_graphs)):
+        #     subgraph_nodes_list.append(list(sub_graphs[i].nodes))
+
+        # for index in np.arange(len(sub_graphs)):
+        #     sub_graphs_adj.append(nx.adjacency_matrix(sub_graphs[index]).toarray())
+
+        # for index in np.arange(len(sub_graphs)):
+        #     sub_graph_edges.append(sub_graphs[index].number_of_edges())
+
+        # for node in np.arange(len(subgraph_nodes_list)):
+        #     sub_adj = sub_graphs_adj[node]
+        #     for neighbors in np.arange(len(subgraph_nodes_list[node])):
+        #         index = subgraph_nodes_list[node][neighbors]
+        #         count = torch.tensor(0).float()
+        #         if(index==node):
+        #             continue
+        #         else:
+        #             c_neighbors = set(subgraph_nodes_list[node]).intersection(subgraph_nodes_list[index])
+        #             if index in c_neighbors:
+        #                 nodes_list = subgraph_nodes_list[node]
+        #                 sub_graph_index = nodes_list.index(index)
+        #                 c_neighbors_list = list(c_neighbors)
+        #                 for i, item1 in enumerate(nodes_list):
+        #                     if(item1 in c_neighbors):
+        #                         for item2 in c_neighbors_list:
+        #                             j = nodes_list.index(item2)
+        #                             count += sub_adj[i][j]
+
+        #             new_adj[node][index] = count/2
+        #             new_adj[node][index] = new_adj[node][index]/(len(c_neighbors)*(len(c_neighbors)-1))
+        #             new_adj[node][index] = new_adj[node][index] * (len(c_neighbors)**2)
+
 
         g[0].ndata['snorm_n'] = torch.FloatTensor(g[0].num_nodes()).fill_(1/g[0].num_nodes()**0.5) 
         g[0].ndata['batch_nodes'] = torch.FloatTensor(g[0].num_nodes()).fill_(g[0].num_nodes()) 
-        # g[0].ndata['node_weight'] = node_weight
-        # g[0].ndata['node_weight_normed'] = node_weight/node_weight.sum()
+        g[0].ndata['node_weight'] = node_weight
+        g[0].ndata['node_weight_normed'] = node_weight/node_weight.sum()
         g[0].ndata['degrees'] = g[0].in_degrees() + 1
         g[0].ndata['degrees_normed'] =  g[0].ndata['degrees']/g[0].ndata['degrees'].sum()
 

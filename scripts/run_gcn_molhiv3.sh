@@ -30,8 +30,7 @@ for wd in 0.0;do
             --lr $lr \
             --seed $seed \
             --weight_decay $wd\
-            --norm_affine\
-            --node_weight
+            --norm_affine
 done
 done
 done
