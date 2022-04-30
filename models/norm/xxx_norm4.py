@@ -3,8 +3,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from dgl.ops import segment
-from utils.utils_practice import repeat_tensor_interleave
+from dgl.ops.segment import segment_reduce
+from utils.utils_practice import repeat_tensor_interleave as segment_repeat
+
 
 class XXX_Norm4(nn.BatchNorm1d):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
@@ -22,7 +23,9 @@ class XXX_Norm4(nn.BatchNorm1d):
 
     def forward(self, graph, tensor):  
         
-        fea_scale = (graph.ndata['degrees_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
+        batch_num_nodes = graph.batch_num_nodes()
+        fea_scale = (graph.ndata['node_weight_normed_power']*graph.ndata['batch_nodes']).unsqueeze(1)
+
         tensor = tensor*fea_scale
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
@@ -42,14 +45,13 @@ class XXX_Norm4(nn.BatchNorm1d):
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-
-        # results = results + self.mean_bias_weight*batch_mean
-        var_scale = repeat_tensor_interleave(batch_var/(segment.segment_reduce(graph.batch_num_nodes(), torch.pow(results,2), reducer='mean')+self.eps), graph.batch_num_nodes())   
-        var_scale = self.var_scale_weight*var_scale*graph.ndata['degrees_normed'].unsqueeze(1)
+    
+        var_scale = segment_repeat(batch_var/(segment_reduce(batch_num_nodes,torch.pow(results,2),reducer='mean')+self.eps), batch_num_nodes)   
+        var_scale = torch.sigmoid(var_scale*graph.ndata['node_weight_normed_power'].unsqueeze(1))
         
-        # if self.affine:
-        #     results = self.weight*var_scale*results + self.bias    
-        # else:
-        #     results = var_scale*results
-        
+        if self.affine:
+            results = self.weight*var_scale*results + self.bias*batch_mean    
+        else:
+            results = var_scale*results
+     
         return results
