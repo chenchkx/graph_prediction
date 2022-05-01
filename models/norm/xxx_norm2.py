@@ -20,7 +20,7 @@ class XXX_Norm2(nn.BatchNorm1d):
     def forward(self, graph, tensor):  
         
         batch_num_nodes = graph.batch_num_nodes()
-        fea_scale = (graph.ndata['degrees_normed_power']*graph.ndata['batch_nodes']).unsqueeze(1)
+        fea_scale = (graph.ndata['degrees_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
 
         tensor = tensor*fea_scale
 
