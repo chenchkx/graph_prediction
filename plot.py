@@ -26,7 +26,7 @@ parser.add_argument("--norm_affine", type=boolean, default=True)
 parser.add_argument("--activation", type=str, default='relu', choices=['relu', 'None'])
 parser.add_argument("--dropout", type=float, default=0.5)
 parser.add_argument("--lr_warmup_type", type=str, default='step', choices=['step','cosine','linear','None'])
-parser.add_argument("--lr", type=float, default=1e-3)
+parser.add_argument("--lr", type=float, default=1e-4)
 parser.add_argument("--weight_decay", type=float, default=0.0)
 parser.add_argument("--loss_type", type=str, default='ogb', choices=['ogb', 'bce', 'mce'], 
                     help='ogb: the loss and metric are consistent with those in ogb paper')

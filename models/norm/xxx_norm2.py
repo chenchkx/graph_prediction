@@ -43,7 +43,7 @@ class XXX_Norm2(nn.BatchNorm1d):
                     bn_training, exponential_average_factor, self.eps)
     
         var_scale = segment_repeat(batch_var/(segment_reduce(batch_num_nodes,torch.pow(results,2),reducer='mean')+self.eps), batch_num_nodes)   
-        var_scale = torch.sigmoid(var_scale*(graph.ndata['degrees_normed']*graph.ndata['degrees']).unsqueeze(1))
+        var_scale = torch.sigmoid(var_scale*(graph.ndata['degrees']).unsqueeze(1))
         
         if self.affine:
             results = self.weight*var_scale*results + self.bias*batch_mean    

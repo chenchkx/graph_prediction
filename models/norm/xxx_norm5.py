@@ -18,12 +18,13 @@ class XXX_Norm5(nn.BatchNorm1d):
             self.register_parameter('bias', None)
 
         self.mean_bias_weight = nn.Parameter(torch.zeros(num_features))
-        self.var_scale_weight = nn.Parameter(torch.ones(num_features))
+        self.var_scale_weight = nn.Parameter(torch.zeros(num_features))
+        self.var_scale_bias = nn.Parameter(torch.ones(num_features))
 
     def forward(self, graph, tensor):  
         
         batch_num_nodes = graph.batch_num_nodes()
-        fea_scale = (graph.ndata['node_weight_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
+        fea_scale = (graph.ndata['degrees_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
 
         tensor = tensor*fea_scale
 
@@ -46,7 +47,7 @@ class XXX_Norm5(nn.BatchNorm1d):
                     bn_training, exponential_average_factor, self.eps)
     
         var_scale = segment_repeat(batch_var/(segment_reduce(batch_num_nodes,torch.pow(results,2),reducer='mean')+self.eps), batch_num_nodes)   
-        var_scale = torch.sigmoid(graph.ndata['degrees_normed']*graph.ndata['node_weight']).unsqueeze(1)
+        var_scale = torch.sigmoid(self.var_scale_weight*var_scale*(graph.ndata['degrees']).unsqueeze(1)+self.var_scale_bias)
         
         if self.affine:
             results = self.weight*var_scale*results + self.bias*batch_mean    
