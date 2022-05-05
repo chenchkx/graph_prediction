@@ -2,13 +2,13 @@
 set -e
 
 
-device=1
+device=0
 dataset='ogbg-moltoxcast'
 model='GCN'
 epochs=500
 nlayer=50
 norm_type='xn5'
-activation='relu'
+activation='relu' 
 dropout=0.5
 lr_warmup_type='step'
 seed=0

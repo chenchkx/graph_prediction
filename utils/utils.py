@@ -44,8 +44,8 @@ def add_node_weight(dataset):
             subgraph_nodes = len(list(G.subgraph(s_indexes).nodes))
             subgraph_edges = G.subgraph(s_indexes).number_of_edges() + subgraph_nodes
             subgraph_nodes = subgraph_nodes + 1
-            instance_energy = subgraph_edges/(subgraph_nodes*(subgraph_nodes-1))
-            node_weight[i] = 2*instance_energy*(subgraph_nodes)
+            instance_energy = 2*subgraph_edges/(subgraph_nodes*(subgraph_nodes-1))
+            node_weight[i] = instance_energy*(subgraph_nodes)
 
             s_node = len(list(G.subgraph(s_indexes).nodes))
             if s_node == 1:
