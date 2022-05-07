@@ -2,7 +2,7 @@
 set -e
 
 
-device=1
+device=0
 dataset='ogbg-moltoxcast'
 model='GCN'
 epochs=500

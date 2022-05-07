@@ -17,8 +17,9 @@ class XXX_Norm3(nn.BatchNorm1d):
             self.register_parameter('weight', None)
             self.register_parameter('bias', None)
         
+        self.mean_bias_weight = nn.Parameter(torch.zeros(num_features))
         self.var_scale_weight = nn.Parameter(torch.zeros(num_features))
-        self.var_bias_weight = nn.Parameter(torch.ones(num_features))
+        self.wei_scale_weight = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):  
         
@@ -45,12 +46,17 @@ class XXX_Norm3(nn.BatchNorm1d):
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
     
-        var_scale = segment_repeat(batch_var/(segment_reduce(batch_num_nodes,torch.pow(results,2),reducer='mean')+self.eps), batch_num_nodes)   
-        var_scale = torch.sigmoid(var_scale)
-        
+        # var_base = segment_repeat((batch_var/(segment_reduce(batch_num_nodes,torch.pow(results,2),reducer='mean')+self.eps)).sqrt(), batch_num_nodes)      
+        # wei_base = (graph.ndata['node_weight']/graph.ndata['node_weight'].sum()).unsqueeze(1)
+        # var_scale = torch.sigmoid(self.var_scale_weight*var_base + wei_base)
+
+        wei_base = (graph.ndata['node_weight_normed_power']).unsqueeze(1)
+        var_scale = torch.sigmoid(wei_base)   
+
         if self.affine:
             results = self.weight*var_scale*results + self.bias*batch_mean    
         else:
             results = var_scale*results
      
         return results
+   

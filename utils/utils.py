@@ -45,7 +45,7 @@ def add_node_weight(dataset):
             subgraph_edges = G.subgraph(s_indexes).number_of_edges() + subgraph_nodes
             subgraph_nodes = subgraph_nodes + 1
             instance_energy = 2*subgraph_edges/(subgraph_nodes*(subgraph_nodes-1))
-            node_weight[i] = instance_energy*(subgraph_nodes)
+            node_weight[i] = instance_energy*(subgraph_nodes**2)
 
             s_node = len(list(G.subgraph(s_indexes).nodes))
             if s_node == 1:
@@ -117,7 +117,7 @@ def add_node_weight(dataset):
         g[0].ndata['batch_nodes'] = torch.FloatTensor(g[0].num_nodes()).fill_(g[0].num_nodes()) 
         g[0].ndata['node_weight'] = node_weight
         g[0].ndata['node_weight_normed'] = node_weight/node_weight.sum()
-        g[0].ndata['node_weight_normed_power'] = node_weight.mean()*node_weight/node_weight.sum()
+        g[0].ndata['node_weight_normed_power'] = node_weight**1.5/node_weight.sum()
         g[0].ndata['degrees'] = g[0].in_degrees() + 1
         g[0].ndata['degrees_normed'] = g[0].ndata['degrees']/g[0].ndata['degrees'].sum()
         g[0].ndata['degrees_normed_power'] = torch.mean(g[0].ndata['degrees'].float())*g[0].ndata['degrees']/g[0].ndata['degrees'].sum()

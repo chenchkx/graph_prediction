@@ -41,13 +41,16 @@ class XXX_Norm2(nn.BatchNorm1d):
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
-    
-        var_scale = segment_repeat(batch_var/(segment_reduce(batch_num_nodes,torch.pow(results,2),reducer='mean')+self.eps), batch_num_nodes)   
-        var_scale = torch.sigmoid(var_scale*(graph.ndata['node_weight']/graph.ndata['batch_nodes']).unsqueeze(1))
-        
+
+        var_base = segment_repeat((batch_var/(segment_reduce(batch_num_nodes,torch.pow(results,2),reducer='mean')+self.eps)).sqrt(), batch_num_nodes)      
+        wei_base = (graph.ndata['node_weight_normed_power']).unsqueeze(1)
+        var_scale = torch.sigmoid(var_base*wei_base)
+     
         if self.affine:
             results = self.weight*var_scale*results + self.bias*batch_mean    
         else:
             results = var_scale*results
      
         return results
+
+   
