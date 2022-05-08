@@ -3,7 +3,7 @@
 set -e
 
 
-device=2
+device=1
 dataset='ogbg-molhiv'
 model='GCN'
 epochs=500
@@ -14,9 +14,10 @@ dropout=0.5
 lr_warmup_type='step'
 seed=0
 
-for lr in 1e-3 1e-4;do
+for lr in 1e-3;do
 for seed in 0;do
 for wd in 0.0;do
+for nlayer in 5 50;do
     python main.py \
             --device $device \
             --dataset $dataset \
@@ -30,8 +31,8 @@ for wd in 0.0;do
             --lr $lr \
             --seed $seed \
             --weight_decay $wd\
-            --norm_affine\
-            --node_weight
+            --norm_affine
+done
 done
 done
 done

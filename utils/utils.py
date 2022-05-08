@@ -33,8 +33,8 @@ def add_node_weight(dataset):
         A_array = adj.detach().numpy()
         G = nx.from_numpy_matrix(A_array)
 
-        node_weight = torch.zeros(num_of_nodes)
-        node_weight_g = torch.zeros(num_of_nodes)
+        node_weight = torch.zeros(num_of_nodes,1)
+        node_weight_g = torch.zeros(num_of_nodes,1)
         for i in range(len(A_array)):
             s_indexes = []
             for j in range(len(A_array)):
@@ -46,14 +46,15 @@ def add_node_weight(dataset):
             subgraph_nodes = subgraph_nodes + 1
             instance_energy = 2*subgraph_edges/(subgraph_nodes*(subgraph_nodes-1))
             node_weight[i] = instance_energy*(subgraph_nodes**2)
+            node_weight_g[i] = instance_energy*subgraph_nodes
 
-            s_node = len(list(G.subgraph(s_indexes).nodes))
-            if s_node == 1:
-                node_weight_g[i] = 1
-            else:
-                s_edge = G.subgraph(s_indexes).number_of_edges()
-                i_engy = 2*s_edge/(s_node*(s_node-1))
-                node_weight_g[i] = i_engy*(s_node**2)
+            # s_node = len(list(G.subgraph(s_indexes).nodes))
+            # if s_node == 1:
+            #     node_weight_g[i] = 1
+            # else:
+            #     s_edge = G.subgraph(s_indexes).number_of_edges()
+            #     i_engy = 2*s_edge/(s_node*(s_node-1))
+            #     node_weight_g[i] = i_engy*(s_node**2)
 
 
         ## coefficients in terms of graph structure
@@ -114,17 +115,16 @@ def add_node_weight(dataset):
 
 
         g[0].ndata['snorm_n'] = torch.FloatTensor(g[0].num_nodes()).fill_(1/g[0].num_nodes()**0.5) 
-        g[0].ndata['batch_nodes'] = torch.FloatTensor(g[0].num_nodes()).fill_(g[0].num_nodes()) 
+        g[0].ndata['batch_nodes'] = torch.FloatTensor(g[0].num_nodes()).fill_(g[0].num_nodes()).unsqueeze(1) 
         g[0].ndata['node_weight'] = node_weight
         g[0].ndata['node_weight_normed'] = node_weight/node_weight.sum()
-        g[0].ndata['node_weight_normed_power'] = node_weight**1.5/node_weight.sum()
-        g[0].ndata['node_weight_normed_power2'] = node_weight**2/node_weight.sum()
+        g[0].ndata['node_weight_normed_power'] = node_weight**2/node_weight.sum()
+        g[0].ndata['node_weight_g'] = node_weight_g
+        g[0].ndata['node_weight_g_normed'] = node_weight_g/node_weight_g.sum()
+        g[0].ndata['node_weight_g_normed_power'] = node_weight_g**2/node_weight_g.sum()
         g[0].ndata['degrees'] = g[0].in_degrees() + 1
         g[0].ndata['degrees_normed'] = g[0].ndata['degrees']/g[0].ndata['degrees'].sum()
         g[0].ndata['degrees_normed_power'] = torch.mean(g[0].ndata['degrees'].float())*g[0].ndata['degrees']/g[0].ndata['degrees'].sum()
-        g[0].ndata['node_weight_g'] = node_weight_g
-        g[0].ndata['node_weight_g_normed'] = node_weight_g/node_weight_g.sum()
-        g[0].ndata['node_weight_g_normed_power'] = node_weight_g/node_weight_g.sum()
 
 
 ### load and preprocess dataset 
