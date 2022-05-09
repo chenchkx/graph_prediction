@@ -36,10 +36,8 @@ class XXX_Norm2(nn.BatchNorm1d):
                     exponential_average_factor = 1.0 / float(self.num_batches_tracked)
                 else: 
                     exponential_average_factor = self.momentum
-            batch_mean = tensor.mean(0, keepdim=False)
             batch_var = tensor.var(0, keepdim=False)
         else:
-            batch_mean = self.running_mean
             batch_var = self.running_var
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,

@@ -3,7 +3,6 @@ import os
 import torch
 import argparse
 from utils.utils import *
-from xmlrpc.client import boolean
 from warnings import simplefilter
 
 torch.set_num_threads(10)

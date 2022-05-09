@@ -23,8 +23,8 @@ class XXX_Norm1(nn.BatchNorm1d):
     def forward(self, graph, tensor):  
         
         batch_num_nodes = graph.batch_num_nodes()
-        fea_calibrate = graph.ndata['node_weight_normed']*graph.ndata['batch_nodes']
-        weight_scales = graph.ndata['node_weight_normed_power']
+        fea_calibrate = graph.ndata['node_weight_g_normed']*graph.ndata['batch_nodes']
+        weight_scales = graph.ndata['node_weight_g_normed_power']
         tensor = tensor*fea_calibrate
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
@@ -36,10 +36,8 @@ class XXX_Norm1(nn.BatchNorm1d):
                     exponential_average_factor = 1.0 / float(self.num_batches_tracked)
                 else: 
                     exponential_average_factor = self.momentum
-            batch_mean = tensor.mean(0, keepdim=False)
             batch_var = tensor.var(0, keepdim=False)
         else:
-            batch_mean = self.running_mean
             batch_var = self.running_var
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
@@ -49,7 +47,7 @@ class XXX_Norm1(nn.BatchNorm1d):
         sacle_factor = torch.sigmoid(fea_scale + self.lambda_weight*weight_scales.repeat(1,self.num_features))
      
         if self.affine:
-            results = self.weight*sacle_factor*results + self.bias*batch_mean    
+            results = self.weight*sacle_factor*results + self.bias   
         else:
             results = sacle_factor*results
      
