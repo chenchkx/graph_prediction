@@ -111,7 +111,7 @@ class GCN(nn.Module):
             self.norm_feature.append(h_n)
             # activation
             h_n = self.activation(h_n)
-            # h_n = h_n + x  
+            h_n = h_n + x  
             h_n = self.dropout(h_n)    
                
         # pooling & prediction
