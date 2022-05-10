@@ -3,7 +3,7 @@
 set -e
 
 
-device=2
+device=3
 dataset='ogbg-molhiv'
 model='GCN'
 epochs=350
