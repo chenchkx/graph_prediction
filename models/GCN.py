@@ -84,7 +84,7 @@ class GCN(nn.Module):
         # output layer
         self.predict = nn.Sequential(
             nn.Linear(embed_dim, embed_dim//2),
-            nn.BatchNorm1d(embed_dim//2),
+            GNN_Norm(args.norm_type, embed_dim//2, affine=args.norm_affine),
             nn.ReLU(),
             nn.Dropout(p=args.dropout),
             nn.Linear(embed_dim//2, output_dim)
