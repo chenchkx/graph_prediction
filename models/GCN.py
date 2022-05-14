@@ -82,14 +82,13 @@ class GCN(nn.Module):
             self.conv_layers.append(GCNConvLayer(args.dataset, embed_dim))
             self.norm_layers.append(GNN_Norm(args.norm_type, embed_dim, affine=args.norm_affine))
         # output layer
-        # self.predict = nn.Sequential(
-        #     nn.Linear(embed_dim, embed_dim//2),
-        #     GNN_Norm(args.norm_type, embed_dim//2, affine=args.norm_affine),
-        #     nn.ReLU(),
-        #     nn.Dropout(p=args.dropout),
-        #     nn.Linear(embed_dim//2, output_dim)
-        # )   
-        self.predict = nn.Linear(embed_dim, output_dim)  
+        self.predict = nn.Sequential(
+            nn.Linear(embed_dim, embed_dim),
+            nn.ReLU(),
+            nn.Dropout(p=args.dropout),
+            nn.Linear(embed_dim, output_dim)
+        )   
+        # self.predict = nn.Linear(embed_dim, output_dim)  
         
         # other modules in GNN
         self.activation = LocalActivation(args.activation)

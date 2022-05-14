@@ -2,10 +2,10 @@
 set -e
 
 
-device=0
+device=2
 dataset='ogbg-moltoxcast'
 model='GCN'
-epochs=350
+epochs=450
 nlayer=50
 norm_type='bn'
 activation='relu'

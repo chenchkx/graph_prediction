@@ -5,7 +5,7 @@ set -e
 device=3
 dataset='ogbg-moltoxcast'
 model='GCN'
-epochs=350
+epochs=450
 nlayer=50
 norm_type='xn1'
 activation='relu'

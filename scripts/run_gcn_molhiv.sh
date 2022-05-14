@@ -3,10 +3,10 @@
 set -e
 
 
-device=0
+device=3
 dataset='ogbg-molhiv'
 model='GCN'
-epochs=350
+epochs=450
 nlayer=50
 norm_type='xn'
 activation='relu'
