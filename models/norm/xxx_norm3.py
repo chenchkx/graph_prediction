@@ -18,14 +18,14 @@ class XXX_Norm3(nn.BatchNorm1d):
             self.register_parameter('bias', None)
         
         self.lambda_weight = nn.Parameter(torch.zeros(num_features))
-        self.npower_weight = nn.Parameter(torch.ones(1))
+        self.npower_weight = nn.Parameter(torch.zeros(1))
 
 
     def forward(self, graph, tensor):  
         
         batch_num_nodes = graph.batch_num_nodes()
         fea_calibrate = graph.ndata['node_weight_g_normed']*graph.ndata['batch_nodes']
-        weight_scales = graph.ndata['node_weight_g_normed']*torch.pow(graph.ndata['node_weight_g'], self.npower_weight)
+        weight_scales = graph.ndata['node_weight_g_normed']*torch.pow(graph.ndata['sg_nodes'], self.npower_weight)
         tensor = tensor*fea_calibrate
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
