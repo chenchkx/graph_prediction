@@ -3,7 +3,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from dgl.ops.segment import segment_reduce
+from dgl.ops.segment import segment_reduce, segment_softmax
 from utils.utils_practice import repeat_tensor_interleave as segment_repeat
 
 class XXX_Norm2(nn.BatchNorm1d):
@@ -18,14 +18,17 @@ class XXX_Norm2(nn.BatchNorm1d):
             self.register_parameter('bias', None)
 
         self.lambda_weight = nn.Parameter(torch.zeros(num_features))
+        self.mean_weight = nn.Parameter(torch.zeros(num_features))
 
 
     def forward(self, graph, tensor):  
         
         batch_num_nodes = graph.batch_num_nodes()
-        fea_calibrate = graph.ndata['node_weight_normed']*graph.ndata['batch_nodes']
-        weight_scales = graph.ndata['node_weight_normed_power']
+        fea_calibrate = graph.ndata['node_weight_g_normed']*graph.ndata['batch_nodes']
+        weight_scales = graph.ndata['node_weight_g_normed_power']
         tensor = tensor*fea_calibrate
+        mean_t = segment_reduce(batch_num_nodes, tensor, reducer='mean')
+        tensor = tensor + self.mean_weight*segment_repeat(mean_t,batch_num_nodes)
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
@@ -47,7 +50,7 @@ class XXX_Norm2(nn.BatchNorm1d):
         sacle_factor = torch.sigmoid(fea_scale + self.lambda_weight*weight_scales.repeat(1,self.num_features))
      
         if self.affine:
-            results = self.weight*sacle_factor*results + self.bias    
+            results = self.weight*sacle_factor*results + self.bias   
         else:
             results = sacle_factor*results
      

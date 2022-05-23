@@ -6,7 +6,6 @@ import torch.nn.functional as F
 from dgl.ops.segment import segment_reduce
 from utils.utils_practice import repeat_tensor_interleave as segment_repeat
 
-
 class XXX_Norm4(nn.BatchNorm1d):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True,
                  track_running_stats=True):
@@ -17,17 +16,19 @@ class XXX_Norm4(nn.BatchNorm1d):
         else: 
             self.register_parameter('weight', None)
             self.register_parameter('bias', None)
-
+        
         self.lambda_weight = nn.Parameter(torch.zeros(num_features))
-        self.npower_weight = nn.Parameter(torch.ones(1))
-
+        self.npower_weight = nn.Parameter(torch.zeros(1))
+        self.mean_weight = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):  
         
         batch_num_nodes = graph.batch_num_nodes()
-        fea_calibrate = graph.ndata['node_weight_normed']*graph.ndata['batch_nodes']
-        weight_scales = graph.ndata['node_weight_normed']*torch.pow(graph.ndata['node_weight'], self.npower_weight)
+        fea_calibrate = graph.ndata['node_weight_g_normed']*graph.ndata['batch_nodes']
+        weight_scales = graph.ndata['node_weight_g_normed']*torch.pow(graph.ndata['sg_nodes'], self.npower_weight)
         tensor = tensor*fea_calibrate
+        mean_t = segment_reduce(batch_num_nodes, tensor, reducer='mean')
+        tensor = tensor + self.mean_weight*segment_repeat(mean_t,batch_num_nodes)
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
