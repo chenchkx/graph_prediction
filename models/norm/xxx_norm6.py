@@ -16,17 +16,19 @@ class XXX_Norm6(nn.BatchNorm1d):
         else: 
             self.register_parameter('weight', None)
             self.register_parameter('bias', None)
-
-        self.mean_bias_weight = nn.Parameter(torch.zeros(num_features))
-        self.var_scale_weight = nn.Parameter(torch.zeros(num_features))
-        self.wei_scale_weight = nn.Parameter(torch.zeros(num_features))
+        
+        self.lambda_weight = nn.Parameter(torch.zeros(num_features))
+        self.npower_weight = nn.Parameter(torch.zeros(1))
+        self.mean_weight = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, graph, tensor):  
         
         batch_num_nodes = graph.batch_num_nodes()
-        fea_scale = (graph.ndata['node_weight_normed']*graph.ndata['batch_nodes']).unsqueeze(1)
-
-        tensor = tensor*fea_scale
+        fea_calibrate = graph.ndata['node_weight_g_normed']*graph.ndata['batch_nodes']
+        weight_scales = graph.ndata['node_weight_g_normed']*torch.pow(graph.ndata['sg_nodes'], self.npower_weight)
+        tensor = tensor*fea_calibrate
+        mean_t = segment_reduce(batch_num_nodes, tensor, reducer='mean')
+        tensor = tensor + self.mean_weight*segment_repeat(mean_t,batch_num_nodes)
 
         exponential_average_factor = 0.0 if self.momentum is None else self.momentum
         bn_training = True if self.training else ((self.running_mean is None) and (self.running_var is None))
@@ -37,22 +39,20 @@ class XXX_Norm6(nn.BatchNorm1d):
                     exponential_average_factor = 1.0 / float(self.num_batches_tracked)
                 else: 
                     exponential_average_factor = self.momentum
-            batch_mean = tensor.mean(0, keepdim=False)
             batch_var = tensor.var(0, keepdim=False)
         else:
-            batch_mean = self.running_mean
             batch_var = self.running_var
         results = F.batch_norm(
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
 
-        var_base = segment_repeat((batch_var/(segment_reduce(batch_num_nodes,torch.pow(results,2),reducer='mean')+self.eps)).sqrt(), batch_num_nodes)      
-        wei_base = (graph.ndata['node_weight_normed_power2']).unsqueeze(1)
-        var_scale = torch.sigmoid(var_base + self.wei_scale_weight*wei_base.repeat(1,self.num_features))
+        fea_scale = segment_repeat((batch_var/(segment_reduce(batch_num_nodes, torch.pow(results,2),reducer='mean')+self.eps)).sqrt(), batch_num_nodes)      
+        sacle_factor = torch.sigmoid(fea_scale + self.lambda_weight*weight_scales.repeat(1,self.num_features))
      
         if self.affine:
-            results = self.weight*var_scale*results + self.bias*batch_mean    
+            results = self.weight*sacle_factor*results + self.bias    
         else:
-            results = var_scale*results
+            results = sacle_factor*results
      
         return results
+   

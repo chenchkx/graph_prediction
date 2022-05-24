@@ -46,8 +46,8 @@ class XXX_Norm4(nn.BatchNorm1d):
                     tensor, self.running_mean, self.running_var, None, None,
                     bn_training, exponential_average_factor, self.eps)
 
-        fea_scale = segment_repeat((batch_var/(segment_reduce(batch_num_nodes, torch.pow(results,2),reducer='mean')+self.eps)).sqrt(), batch_num_nodes)      
-        sacle_factor = torch.sigmoid(fea_scale + self.lambda_weight*weight_scales.repeat(1,self.num_features))
+        # fea_scale = segment_repeat((batch_var/(segment_reduce(batch_num_nodes, torch.pow(results,2),reducer='mean')+self.eps)).sqrt(), batch_num_nodes)      
+        sacle_factor = torch.sigmoid(self.lambda_weight*weight_scales.repeat(1,self.num_features))
      
         if self.affine:
             results = self.weight*sacle_factor*results + self.bias    

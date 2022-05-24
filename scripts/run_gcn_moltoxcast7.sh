@@ -1,14 +1,13 @@
-#!/usr/bin/env bash
 
 set -e
 
 
-device=3
-dataset='ogbg-molhiv'
+device=2
+dataset='ogbg-moltoxcast'
 model='GCN'
 epochs=450
 nlayer=50
-norm_type='xn4'
+norm_type='xn7'
 activation='relu'
 dropout=0.5
 lr_warmup_type='step'
@@ -36,4 +35,3 @@ done
 done
 done
 done
-
